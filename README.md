@@ -115,6 +115,9 @@ cd Elynos
 # Run the 100x PhD-Level Multidisciplinary Benchmark Suite
 python test/elynos_deep_benchmark.py
 
+# Run Empirical Head-to-Head Benchmark against other Edge AIs (Same Questions)
+python test/head_to_head_ai_benchmark.py
+
 # Run Flutter tests
 flutter test
 
