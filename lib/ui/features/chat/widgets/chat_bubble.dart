@@ -111,7 +111,7 @@ class _ChatBubbleState extends State<ChatBubble> {
               thinkingProcess: widget.message.thinkingProcess!,
               durationSeconds: 1,
             )
-          else if (!widget.message.isError)
+          else if (!widget.message.id.startsWith('err_'))
             const Padding(
               padding: EdgeInsets.only(bottom: 6),
               child: Row(

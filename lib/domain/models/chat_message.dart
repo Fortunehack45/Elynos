@@ -69,6 +69,7 @@ class ChatMessage {
   bool get hasImage => imageUrl != null && imageUrl!.trim().isNotEmpty;
   bool get hasCodeArtifact => codeArtifact != null && codeArtifact!.trim().isNotEmpty;
   bool get hasVisualAudit => visualAudit != null;
+  bool get isError => id.startsWith('err_');
 
   Map<String, dynamic> toMap() {
     return {
