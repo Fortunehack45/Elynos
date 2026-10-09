@@ -410,14 +410,14 @@ class ElynosGeneratedWidget extends StatelessWidget {
   // --- Study Mode (Student-centric, formulas & LaTeX) ---
   OfflineAiResponse _generateStudyResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
     final text = '### 🎓 Elynos Study Mentor (Elynos 1 Axiom)\n\n'
-        'Let\'s deconstruct the core mathematical principles:\n\n'
+        "Let's deconstruct the core mathematical principles:\n\n"
         '#### 1. Fundamental Theorem & Invariants\n'
-        r'$$\int_{a}^{b} f(x) \, dx = F(b) - F(a)$$' + '\n\n' +
-        r'$$\nabla \times \mathbf{B} = \mu_0 \mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}$$' + '\n\n' +
+        r'$$\int_{a}^{b} f(x) \, dx = F(b) - F(a)$$' '\n\n'
+        r'$$\nabla \times \mathbf{B} = \mu_0 \mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}$$' '\n\n'
         '#### 2. Key Concept Retention\n'
         '> **Axiom Rule**: Always confirm boundary condition continuity before evaluating asymptotic limits.\n\n'
         '#### 3. Socratic Challenge\n'
-        r'Calculate the derivative for $f(x) = x^3 \ln(x)$. Share your steps and I\'ll verify them with you!'
+        r"Calculate the derivative for $f(x) = x^3 \ln(x)$. Share your steps and I'll verify them with you!"
         '${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
 
     return OfflineAiResponse(

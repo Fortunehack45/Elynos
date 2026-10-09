@@ -42,3 +42,4 @@ migrate_working_dir/
 
 # Benchmark temporary DB
 *.db
+scratch*
