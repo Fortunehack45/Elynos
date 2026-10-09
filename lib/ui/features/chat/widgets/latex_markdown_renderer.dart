@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import '../../../../data/services/math_formula_processor.dart';
 
 class LatexMarkdownRenderer extends StatelessWidget {
   final String content;
@@ -18,45 +19,68 @@ class LatexMarkdownRenderer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(parts.length, (index) {
           if (index.isOdd) {
-            // LaTeX Formula Block - Clean styled formula block
-            final formula = parts[index].trim();
+            final rawFormula = parts[index].trim();
+            final processedFormula = MathFormulaProcessor.processLatex(rawFormula);
+
             return Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7F7F8),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEAEAEB),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'LaTeX / Math',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.functions_rounded, size: 14, color: Color(0xFF4B5563)),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Processed Formula',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.grey.shade700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      Builder(
+                        builder: (ctx) => InkWell(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            Clipboard.setData(ClipboardData(text: processedFormula));
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(content: Text('Formula copied'), duration: Duration(seconds: 1)),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(Icons.copy_rounded, size: 13, color: Colors.grey.shade600),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SelectableText(
-                      formula,
+                      processedFormula,
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16.5,
+                        fontFamily: 'serif',
+                        fontWeight: FontWeight.w600,
                         color: Colors.black,
-                        letterSpacing: 0.5,
+                        height: 1.35,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
@@ -76,8 +100,22 @@ class LatexMarkdownRenderer extends StatelessWidget {
   }
 
   Widget _buildMarkdown(BuildContext context, String markdownText) {
+    // Process inline single $...$ math expressions into clean readable unicode
+    String cleanMarkdown = markdownText;
+    if (cleanMarkdown.contains('\$')) {
+      cleanMarkdown = cleanMarkdown.replaceAllMapped(
+        RegExp(r'(?<!\$)\$(?!\$)(.*?)(?<!\$)\$(?!\$)'),
+        (match) {
+          final rawInline = match.group(1) ?? '';
+          if (rawInline.trim().isEmpty) return match.group(0)!;
+          final processed = MathFormulaProcessor.processLatex(rawInline);
+          return '**$processed**';
+        },
+      );
+    }
+
     return MarkdownBody(
-      data: markdownText,
+      data: cleanMarkdown,
       selectable: true,
       styleSheet: MarkdownStyleSheet(
         p: const TextStyle(
