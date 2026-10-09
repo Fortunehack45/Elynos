@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import '../../../core/theme/elynos_theme.dart';
@@ -20,21 +19,54 @@ class LatexMarkdownRenderer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(parts.length, (index) {
           if (index.isOdd) {
-            // LaTeX Formula Block
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Math.tex(
-                    parts[index].trim(),
-                    textStyle: const TextStyle(fontSize: 18, color: ElyonsColors.accent),
-                    onErrorFallback: (err) => Text(
-                      parts[index],
-                      style: const TextStyle(color: Colors.redAccent, fontFamily: 'monospace'),
+            // LaTeX Formula Block - Clean on-device styled formula block
+            final formula = parts[index].trim();
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF131A26),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: ElyonsColors.accent.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: ElyonsColors.accent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'LaTeX / Math',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: ElyonsColors.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SelectableText(
+                      formula,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             );
           } else {

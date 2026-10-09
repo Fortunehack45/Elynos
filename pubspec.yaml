@@ -16,9 +16,8 @@ dependencies:
   flutter_svg: ^2.0.10
   flutter_highlight: ^0.7.0
 
-  # Markdown & LaTeX Math Rendering
+  # Markdown Rendering
   flutter_markdown: ^0.7.4+1
-  flutter_math_fork: ^0.7.2
 
   # State Management
   provider: ^6.1.2

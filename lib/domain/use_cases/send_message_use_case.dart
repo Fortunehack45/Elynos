@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../models/chat_message.dart';
 import '../models/intelligence_mode.dart';
+import '../models/training_memory.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/training_repository.dart';
 import '../../data/services/offline_ai_service.dart';
