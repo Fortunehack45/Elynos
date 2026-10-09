@@ -1,83 +1,67 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/elynos_theme.dart';
+import 'package:flutter/services.dart';
 
 class ThinkingDisclosureWidget extends StatefulWidget {
   final String thinkingProcess;
+  final int durationSeconds;
 
-  const ThinkingDisclosureWidget({super.key, required this.thinkingProcess});
+  const ThinkingDisclosureWidget({
+    super.key,
+    required this.thinkingProcess,
+    this.durationSeconds = 1,
+  });
 
   @override
   State<ThinkingDisclosureWidget> createState() => _ThinkingDisclosureWidgetState();
 }
 
-class _ThinkingDisclosureWidgetState extends State<ThinkingDisclosureWidget>
-    with SingleTickerProviderStateMixin {
+class _ThinkingDisclosureWidgetState extends State<ThinkingDisclosureWidget> {
   bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF131820),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: _isExpanded ? ElyonsColors.accent.withOpacity(0.4) : ElyonsColors.border,
-          width: 1,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Bar (Clickable)
+          // Grok Thinking Pill: 💡 Thought for 1s >
           InkWell(
             onTap: () {
+              HapticFeedback.selectionClick();
               setState(() {
                 _isExpanded = !_isExpanded;
               });
             },
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: ElyonsColors.accent.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.psychology_rounded,
-                      size: 16,
-                      color: ElyonsColors.accent,
-                    ),
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 16,
+                    color: Color(0xFF757575),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Thought Process',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ElyonsColors.accent,
-                    ),
-                  ),
-                  const Spacer(),
+                  const SizedBox(width: 6),
                   Text(
-                    _isExpanded ? 'Hide' : 'Expand',
+                    'Thought for ${widget.durationSeconds}s',
                     style: const TextStyle(
-                      fontSize: 12,
-                      color: ElyonsColors.textMuted,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF757575),
+                      letterSpacing: -0.2,
                     ),
                   ),
                   const SizedBox(width: 4),
                   AnimatedRotation(
-                    turns: _isExpanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 200),
+                    turns: _isExpanded ? 0.25 : 0.0,
+                    duration: const Duration(milliseconds: 150),
                     child: const Icon(
-                      Icons.keyboard_arrow_down_rounded,
+                      Icons.chevron_right_rounded,
                       size: 18,
-                      color: ElyonsColors.textMuted,
+                      color: Color(0xFF757575),
                     ),
                   ),
                 ],
@@ -85,32 +69,26 @@ class _ThinkingDisclosureWidgetState extends State<ThinkingDisclosureWidget>
             ),
           ),
 
-          // Collapsible Reasoning Content
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Container(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F131A),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: ElyonsColors.border.withOpacity(0.6)),
-                ),
-                child: SelectableText(
-                  widget.thinkingProcess,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    height: 1.5,
-                    color: ElyonsColors.textSecondary,
-                  ),
+          // Expandable Reasoning Tree Content
+          if (_isExpanded)
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 6),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7F8),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+              ),
+              child: SelectableText(
+                widget.thinkingProcess,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12.5,
+                  color: Color(0xFF374151),
+                  height: 1.45,
                 ),
               ),
             ),
-            crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 250),
-          ),
         ],
       ),
     );

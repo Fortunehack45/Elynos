@@ -226,12 +226,12 @@ class _BuildModeViewState extends State<BuildModeView> {
                   ElevatedButton.icon(
                     onPressed: _isPushing ? null : _pushToGitHub,
                     icon: _isPushing
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.cloud_upload_outlined, size: 18),
                     label: Text(_isPushing ? 'Pushing to GitHub...' : 'Push to GitHub'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ElyonsColors.accent,
-                      foregroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),

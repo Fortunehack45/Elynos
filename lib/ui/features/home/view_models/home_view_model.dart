@@ -144,19 +144,44 @@ class HomeViewModel extends ChangeNotifier {
         ? 'private_session'
         : (_activeConversationId ?? 'conv_${DateTime.now().millisecondsSinceEpoch}');
 
+    _activeConversationId ??= convId;
+
+    // 1. Optimistic Update: Immediately display user message in the chat
+    final userMsg = ChatMessage(
+      id: 'msg_${DateTime.now().millisecondsSinceEpoch}_u',
+      conversationId: convId,
+      sender: 'user',
+      text: promptText,
+      mode: _currentMode,
+      timestamp: DateTime.now(),
+      isTemporary: _isPrivateMode,
+      attachedFiles: attachedFiles.isNotEmpty ? List.from(attachedFiles) : null,
+    );
+    _messages.add(userMsg);
     _isLoading = true;
     notifyListeners();
 
     try {
-      // If first message in conversation, update title
-      if (!_isPrivateMode && _messages.isEmpty && _activeConversationId != null) {
+      // 2. Safe conversation title update
+      if (!_isPrivateMode) {
         final title = promptText.length > 28 ? '${promptText.substring(0, 28)}...' : promptText;
-        final conv = _conversations.firstWhere((c) => c.id == _activeConversationId);
-        conv.title = title;
-        await _chatRepository.saveConversation(conv);
+        final conv = _conversations.where((c) => c.id == convId).firstOrNull;
+        if (conv != null) {
+          conv.title = title;
+          await _chatRepository.saveConversation(conv);
+        } else {
+          final newConv = Conversation(
+            id: convId,
+            title: title,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await _chatRepository.saveConversation(newConv);
+        }
       }
 
-      await _sendMessageUseCase.execute(
+      // 3. Generate response via use case
+      final aiMsg = await _sendMessageUseCase.execute(
         conversationId: convId,
         prompt: promptText,
         mode: _currentMode,
@@ -164,9 +189,24 @@ class HomeViewModel extends ChangeNotifier {
         attachedFiles: attachedFiles,
       );
 
-      // Refresh messages
-      _messages = await _chatRepository.getMessages(convId, isPrivate: _isPrivateMode);
+      // 4. Update messages with AI response
+      if (!_messages.any((m) => m.id == aiMsg.id)) {
+        _messages.add(aiMsg);
+      }
+
       await loadConversations();
+    } catch (e, stack) {
+      debugPrint('Error in sendMessage: $e\n$stack');
+      _messages.add(ChatMessage(
+        id: 'err_${DateTime.now().millisecondsSinceEpoch}',
+        conversationId: convId,
+        sender: 'elynos',
+        text: '### ⚡ Elynos 1 Axiom\n\n'
+            'Encountered an issue processing on-device: `$e`\n\n'
+            'The engine is operational. Please try your prompt again.',
+        mode: _currentMode,
+        timestamp: DateTime.now(),
+      ));
     } finally {
       _isLoading = false;
       notifyListeners();

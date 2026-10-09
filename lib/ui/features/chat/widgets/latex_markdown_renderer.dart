@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
-import '../../../core/theme/elynos_theme.dart';
 
 class LatexMarkdownRenderer extends StatelessWidget {
   final String content;
@@ -19,38 +18,33 @@ class LatexMarkdownRenderer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(parts.length, (index) {
           if (index.isOdd) {
-            // LaTeX Formula Block - Clean on-device styled formula block
+            // LaTeX Formula Block - Clean styled formula block
             final formula = parts[index].trim();
             return Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF131A26),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: ElyonsColors.accent.withOpacity(0.3)),
+                color: const Color(0xFFF7F7F8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: ElyonsColors.accent.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'LaTeX / Math',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: ElyonsColors.accent,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAEAEB),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'LaTeX / Math',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
                       ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 6),
                   SingleChildScrollView(
@@ -60,8 +54,8 @@ class LatexMarkdownRenderer extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontFamily: 'monospace',
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -86,31 +80,38 @@ class LatexMarkdownRenderer extends StatelessWidget {
       data: markdownText,
       selectable: true,
       styleSheet: MarkdownStyleSheet(
-        p: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.5),
-        h1: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-        h2: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-        h3: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ElyonsColors.accent),
+        p: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: Colors.black,
+          height: 1.4,
+          letterSpacing: -0.2,
+        ),
+        h1: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black, letterSpacing: -0.4),
+        h2: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Colors.black, letterSpacing: -0.3),
+        h3: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.black, letterSpacing: -0.2),
         code: const TextStyle(
-          backgroundColor: Color(0xFF1E242E),
-          color: Color(0xFF38BDF8),
+          backgroundColor: Color(0xFFF2F2F4),
+          color: Colors.black,
           fontFamily: 'monospace',
-          fontSize: 13,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
         ),
         codeblockPadding: const EdgeInsets.all(0),
         codeblockDecoration: BoxDecoration(
-          color: const Color(0xFF161B22),
+          color: const Color(0xFF1E242E),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: ElyonsColors.border),
         ),
-        blockquote: const TextStyle(color: ElyonsColors.textSecondary, fontStyle: FontStyle.italic),
+        blockquote: const TextStyle(color: Color(0xFF4B5563), fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),
         blockquoteDecoration: BoxDecoration(
-          color: const Color(0xFF161B22),
-          border: const Border(left: BorderSide(color: ElyonsColors.accent, width: 4)),
+          color: const Color(0xFFF7F7F8),
+          border: const Border(left: BorderSide(color: Colors.black, width: 3)),
           borderRadius: BorderRadius.circular(4),
         ),
-        tableBorder: TableBorder.all(color: ElyonsColors.border, width: 1),
-        tableHead: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        tableBody: const TextStyle(color: ElyonsColors.textPrimary),
+        tableBorder: TableBorder.all(color: const Color(0xFFE5E7EB), width: 1),
+        tableHead: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black),
+        tableBody: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+        listBullet: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       ),
       builders: {
         'code': CodeBlockCustomBuilder(),
@@ -124,7 +125,7 @@ class CodeBlockCustomBuilder extends MarkdownElementBuilder {
   Widget? visitElementAfter(mdElement, TextStyle? preferredStyle) {
     final code = mdElement.textContent;
     if (!code.contains('\n')) {
-      return null; // Inline code
+      return null; // Inline code handled by default style
     }
 
     return Container(
@@ -132,13 +133,13 @@ class CodeBlockCustomBuilder extends MarkdownElementBuilder {
       decoration: BoxDecoration(
         color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ElyonsColors.border),
+        border: Border.all(color: const Color(0xFF262C36)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: const BoxDecoration(
               color: Color(0xFF1E242E),
               borderRadius: BorderRadius.only(
@@ -151,11 +152,12 @@ class CodeBlockCustomBuilder extends MarkdownElementBuilder {
               children: [
                 const Text(
                   'Code Snippet',
-                  style: TextStyle(fontSize: 12, color: ElyonsColors.textSecondary, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w600),
                 ),
                 Builder(
                   builder: (ctx) => InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       Clipboard.setData(ClipboardData(text: code));
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         const SnackBar(content: Text('Copied to clipboard'), duration: Duration(seconds: 1)),
@@ -163,9 +165,9 @@ class CodeBlockCustomBuilder extends MarkdownElementBuilder {
                     },
                     child: const Row(
                       children: [
-                        Icon(Icons.copy_rounded, size: 14, color: ElyonsColors.accent),
+                        Icon(Icons.copy_rounded, size: 14, color: Colors.white),
                         SizedBox(width: 4),
-                        Text('Copy', style: TextStyle(fontSize: 12, color: ElyonsColors.accent)),
+                        Text('Copy', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),

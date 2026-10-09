@@ -6,6 +6,7 @@ class ElyonsAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int activeTab;
   final ValueChanged<int> onTabChanged;
   final VoidCallback onOpenDrawer;
+  final VoidCallback onNewChat;
   final bool isPrivateMode;
   final VoidCallback onTogglePrivate;
 
@@ -14,6 +15,7 @@ class ElyonsAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.activeTab,
     required this.onTabChanged,
     required this.onOpenDrawer,
+    required this.onNewChat,
     required this.isPrivateMode,
     required this.onTogglePrivate,
   });
@@ -24,48 +26,91 @@ class ElyonsAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: ElyonsColors.background,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            // Left: Hamburger Menu Button
-            IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 24),
-              onPressed: () {
+            // Left: Grok-style Hamburger Menu Button (= two parallel lines)
+            InkWell(
+              onTap: () {
                 HapticFeedback.lightImpact();
                 onOpenDrawer();
               },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F2F4),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 2.2,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 16,
+                        height: 2.2,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             const Spacer(),
 
-            // Center: Segmented Navigation Tabs (Ask | Imagine | Build)
+            // Center: Grok Segmented Navigation Tabs (Ask | Imagine | Build)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildTab('Ask', 0),
-                const SizedBox(width: 14),
+                const SizedBox(width: 18),
                 _buildTab('Imagine', 1),
-                const SizedBox(width: 14),
+                const SizedBox(width: 18),
                 _buildTab('Build', 2),
               ],
             ),
 
             const Spacer(),
 
-            // Right: Private / Incognito Mode Mask Icon
-            IconButton(
-              icon: Icon(
-                isPrivateMode ? Icons.visibility_off_rounded : Icons.visibility_off_outlined,
-                color: isPrivateMode ? ElyonsColors.accent : ElyonsColors.textSecondary,
-                size: 22,
-              ),
-              onPressed: () {
-                HapticFeedback.selectionClick();
-                onTogglePrivate();
+            // Right: Grok-style New Chat Edit Note Button
+            InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onNewChat();
               },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF2F2F4),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.edit_outlined,
+                    color: Colors.black,
+                    size: 20,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -76,6 +121,7 @@ class ElyonsAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildTab(String title, int index) {
     final isSelected = activeTab == index;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         HapticFeedback.selectionClick();
         onTabChanged(index);
@@ -86,19 +132,19 @@ class ElyonsAppBar extends StatelessWidget implements PreferredSizeWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 17,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isSelected ? Colors.black : const Color(0xFF8E8E93),
               letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
-          // Active Indicator Pill Underline
+          // Grok Active Underline Indicator Bar
           Container(
             height: 3,
-            width: isSelected ? 22 : 0,
+            width: isSelected ? 24 : 0,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white : Colors.transparent,
+              color: isSelected ? Colors.black : Colors.transparent,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

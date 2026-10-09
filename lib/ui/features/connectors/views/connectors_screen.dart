@@ -254,7 +254,7 @@ class _ConnectorsScreenState extends State<ConnectorsScreen> {
               onSave(controller.text.trim());
               Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.white),
             child: const Text('Save'),
           ),
         ],
@@ -280,7 +280,7 @@ class _ConnectorsScreenState extends State<ConnectorsScreen> {
               _checkStatus();
               Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.white),
             child: const Text('Connect Workspace'),
           ),
         ],

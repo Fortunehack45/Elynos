@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../domain/models/intelligence_mode.dart';
 import '../theme/elynos_theme.dart';
 
 class ElyonsBottomBar extends StatefulWidget {
   final IntelligenceMode currentMode;
   final VoidCallback onOpenModeSheet;
-  final void Function(String text, {List<String> attachedFiles}) onSend;
+  final Function(String, {List<String> attachedFiles}) onSend;
   final bool isPrivateMode;
   final bool isLoading;
 
@@ -24,8 +25,8 @@ class ElyonsBottomBar extends StatefulWidget {
 }
 
 class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
-  final _controller = TextEditingController();
-  final List<String> _attachedFiles = [];
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _attachedFilePaths = [];
   bool _hasText = false;
 
   @override
@@ -34,73 +35,149 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
     _controller.addListener(() {
       final has = _controller.text.trim().isNotEmpty;
       if (has != _hasText) {
-        setState(() => _hasText = has);
+        setState(() {
+          _hasText = has;
+        });
       }
     });
   }
 
-  void _submit() {
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleSend() {
     final text = _controller.text.trim();
-    if ((text.isEmpty && _attachedFiles.isEmpty) || widget.isLoading) return;
-    HapticFeedback.lightImpact();
-    widget.onSend(text, attachedFiles: List.from(_attachedFiles));
+    if (text.isEmpty && _attachedFilePaths.isEmpty) return;
+    if (widget.isLoading) return;
+
+    HapticFeedback.mediumImpact();
+    widget.onSend(text, attachedFiles: List.from(_attachedFilePaths));
     _controller.clear();
     setState(() {
-      _attachedFiles.clear();
+      _attachedFilePaths.clear();
+      _hasText = false;
     });
   }
 
-  void _showAttachSheet() {
+  Future<void> _pickRealFiles(BuildContext context, FileType type, {List<String>? allowedExtensions}) async {
+    Navigator.of(context).pop(); // Close bottom sheet
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: type,
+        allowedExtensions: allowedExtensions,
+      );
+
+      if (result != null && result.paths.isNotEmpty) {
+        final validPaths = result.paths.whereType<String>().toList();
+        if (validPaths.isNotEmpty) {
+          setState(() {
+            _attachedFilePaths.addAll(validPaths);
+          });
+          HapticFeedback.lightImpact();
+        }
+      }
+    } catch (e) {
+      debugPrint('File picker error: $e');
+    }
+  }
+
+  void _showFileAttachmentSheet() {
     HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF13171F),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Attach to Elynos 1 Axiom',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Attach images, zips, or docs. Elynos will inspect and visualize them on-device.',
-                style: TextStyle(fontSize: 12, color: ElyonsColors.textSecondary),
+              const SizedBox(height: 14),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Attach Real Files',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               ListTile(
-                leading: const Icon(Icons.image_rounded, color: Color(0xFF00E676)),
-                title: const Text('Attach Image / Photo (Visual Perception)', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Inspect dimensions, layout, and visual contents', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => _attachedFiles.add('ui_wireframe_mockup.png'));
-                },
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF2F2F4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.image_outlined, color: Colors.black, size: 20),
+                ),
+                title: const Text('Photos & Images (Axiom Lens)', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+                subtitle: const Text('Real camera & gallery images for visual inspection', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                onTap: () => _pickRealFiles(ctx, FileType.image),
               ),
               ListTile(
-                leading: const Icon(Icons.folder_zip_rounded, color: Color(0xFFFFD54F)),
-                title: const Text('Attach ZIP Archive (Auto-Unzip)', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Unpack and index code into 100k local context', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => _attachedFiles.add('project_source.zip'));
-                },
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF2F2F4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.folder_zip_outlined, color: Colors.black, size: 20),
+                ),
+                title: const Text('ZIP Archives (Full Codebases)', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+                subtitle: const Text('Unzips on-device & indexes into 100k context', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                onTap: () => _pickRealFiles(ctx, FileType.custom, allowedExtensions: ['zip', 'tar', 'gz']),
               ),
               ListTile(
-                leading: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFFF5252)),
-                title: const Text('Attach PDF Document', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Inspect document layout, margins, and typography', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => _attachedFiles.add('technical_spec.pdf'));
-                },
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF2F2F4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.description_outlined, color: Colors.black, size: 20),
+                ),
+                title: const Text('Documents & Source Code', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+                subtitle: const Text('PDF, TXT, Dart, Python, JSON, Markdown', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                onTap: () => _pickRealFiles(ctx, FileType.custom, allowedExtensions: ['pdf', 'txt', 'md', 'json', 'dart', 'py', 'csv', 'docx']),
+              ),
+              ListTile(
+                leading: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF2F2F4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.file_present_outlined, color: Colors.black, size: 20),
+                ),
+                title: const Text('Any File From Device', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+                subtitle: const Text('Browse all formats on your device storage', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                onTap: () => _pickRealFiles(ctx, FileType.any),
               ),
             ],
           ),
@@ -111,204 +188,258 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
 
   @override
   Widget build(BuildContext context) {
+    final modeLabel = _getModeLabel(widget.currentMode);
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-      color: ElyonsColors.background,
-      child: SafeArea(
-        top: false,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F7F8),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Temporary Conversation Badge in Private Mode
-            if (widget.isPrivateMode)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E242E),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Text(
-                  'Temporary conversation',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: ElyonsColors.textSecondary,
+            // Attached Files Chips
+            if (_attachedFilePaths.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  height: 32,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _attachedFilePaths.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (context, index) {
+                      final path = _attachedFilePaths[index];
+                      final name = path.split('/').last.split(r'\').last;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAEAEB),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.attach_file, size: 14, color: Colors.black87),
+                            const SizedBox(width: 4),
+                            Text(
+                              name,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black87),
+                            ),
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _attachedFilePaths.removeAt(index);
+                                });
+                              },
+                              child: const Icon(Icons.close, size: 14, color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
 
-            // Main Input Container
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF151922),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: ElyonsColors.border),
+            // Top Input Field (Grok "Ask anything")
+            TextField(
+              controller: _controller,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Attachment Preview Chips
-                  if (_attachedFiles.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, left: 4, right: 4, bottom: 2),
-                      child: Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: _attachedFiles.map((file) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E2634),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF2A3648)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                file.endsWith('.zip')
-                                    ? Icons.folder_zip_rounded
-                                    : (file.endsWith('.png') || file.endsWith('.jpg'))
-                                        ? Icons.image_rounded
-                                        : Icons.description_rounded,
-                                size: 14,
-                                color: ElyonsColors.accent,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(file, style: const TextStyle(fontSize: 11, color: Colors.white)),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () => setState(() => _attachedFiles.remove(file)),
-                                child: const Icon(Icons.close, size: 13, color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        )).toList(),
-                      ),
-                    ),
+              cursorColor: Colors.black,
+              maxLines: 5,
+              minLines: 1,
+              decoration: const InputDecoration(
+                hintText: 'Ask anything',
+                hintStyle: TextStyle(
+                  color: Color(0xFF8E8E93),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.only(top: 2, bottom: 8),
+              ),
+            ),
 
-                  // Text Input Field
-                  TextField(
-                    controller: _controller,
-                    minLines: 1,
-                    maxLines: 4,
-                    style: const TextStyle(fontSize: 15, color: Colors.white),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      hintText: widget.isPrivateMode ? 'Ask privately...' : 'Ask anything, attach or visualize',
-                      hintStyle: const TextStyle(color: ElyonsColors.textMuted, fontSize: 15),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+            // Bottom Action Row (Grok 1:1 match)
+            Row(
+              children: [
+                // Plus Attachment Button
+                InkWell(
+                  onTap: _showFileAttachmentSheet,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEAEAEB),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.add, size: 20, color: Color(0xFF1F2937)),
                     ),
                   ),
+                ),
+                const SizedBox(width: 8),
 
-                  // Bottom Action Strip
-                  Row(
-                    children: [
-                      // Attachment / Plus Button
-                      IconButton(
-                        icon: const Icon(Icons.add, color: Colors.white70, size: 22),
-                        onPressed: _showAttachSheet,
-                      ),
+                // Fast / Mode Selector Pill (Grok ⚡ Fast v)
+                InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    widget.onOpenModeSheet();
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAEAEB),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bolt, size: 16, color: Colors.black),
+                        const SizedBox(width: 3),
+                        Text(
+                          modeLabel,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.black),
+                      ],
+                    ),
+                  ),
+                ),
 
-                      // Mode Dropdown Pill (e.g. ⚡ Fast ˅)
-                      InkWell(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          widget.onOpenModeSheet();
-                        },
+                const Spacer(),
+
+                // Right: Speak Pill & Mic OR Circular Send Button
+                if (!_hasText && _attachedFilePaths.isEmpty) ...[
+                  // Mic Icon Button
+                  IconButton(
+                    icon: const Icon(Icons.mic_none_rounded, color: Color(0xFF4B5563), size: 24),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Elynos Audio: Speak directly or type your prompt.', style: TextStyle(fontWeight: FontWeight.w600)),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Grok "||| Speak" Pill Button
+                  InkWell(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Voice Mode: Ready to capture voice note.', style: TextStyle(fontWeight: FontWeight.w600)),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF202734),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(widget.currentMode.icon, size: 14, color: ElyonsColors.accent),
-                              const SizedBox(width: 5),
-                              Text(
-                                widget.currentMode.displayName,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Colors.white70),
-                            ],
-                          ),
-                        ),
                       ),
-
-                      const Spacer(),
-
-                      // Mic Button
-                      IconButton(
-                        icon: const Icon(Icons.mic_none_rounded, color: Colors.white70, size: 22),
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Voice input ready')),
-                          );
-                        },
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.graphic_eq, color: Colors.white, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            'Speak',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ),
-
-                      // Send / Speak Pill Button
-                      if (_hasText || _attachedFiles.isNotEmpty)
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: widget.isLoading
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                                  )
-                                : const Icon(Icons.arrow_upward_rounded, color: Colors.black, size: 20),
-                            onPressed: widget.isLoading ? null : _submit,
-                          ),
-                        )
-                      else
-                        // Speak Pill Button (Black pill with wave icon)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.graphic_eq_rounded, color: Colors.black, size: 16),
-                              SizedBox(width: 5),
-                              Text(
-                                'Speak',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
+                    ),
+                  ),
+                ] else ...[
+                  // Grok Upward Arrow Send Button (Black Circle with White Up Arrow)
+                  InkWell(
+                    onTap: widget.isLoading ? null : _handleSend,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: widget.isLoading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(
+                                Icons.arrow_upward_rounded,
+                                color: Colors.white,
+                                size: 20,
                               ),
-                            ],
-                          ),
-                        ),
-                    ],
+                      ),
+                    ),
                   ),
                 ],
-              ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _getModeLabel(IntelligenceMode mode) {
+    switch (mode) {
+      case IntelligenceMode.fast:
+        return 'Fast';
+      case IntelligenceMode.expert:
+        return 'Think Deep';
+      case IntelligenceMode.build:
+        return 'Build';
+      case IntelligenceMode.goal:
+        return 'Goal';
+      case IntelligenceMode.study:
+        return 'Study';
+      case IntelligenceMode.research:
+        return 'Research';
+      case IntelligenceMode.heavy:
+        return 'Heavy';
+      case IntelligenceMode.auto:
+      default:
+        return 'Fast';
+    }
   }
 }

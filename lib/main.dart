@@ -7,13 +7,13 @@ import 'data/services/local_database_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Edge-to-edge Android system overlay styling
+  // Grok edge-to-edge light system overlay styling
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: ElyonsColors.background,
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -35,7 +35,7 @@ class ElynosApp extends StatelessWidget {
     return MaterialApp(
       title: 'Elynos AI',
       debugShowCheckedModeBanner: false,
-      theme: ElyonsTheme.darkTheme,
+      theme: ElyonsTheme.grokTheme,
       home: const HomeScreen(),
     );
   }

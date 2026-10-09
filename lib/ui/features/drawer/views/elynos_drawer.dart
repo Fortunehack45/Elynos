@@ -36,7 +36,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
     }).toList();
 
     return Drawer(
-      backgroundColor: const Color(0xFF0F131A),
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
           children: [
@@ -45,25 +45,25 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 20,
-                    backgroundColor: const Color(0xFF22C55E),
-                    child: const Icon(Icons.face_retouching_natural, color: Colors.black, size: 22),
+                    backgroundColor: Colors.black,
+                    child: Icon(Icons.bolt, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'FOURTUNA',
+                    'ELYNOS',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
                       letterSpacing: 0.5,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.keyboard_double_arrow_left_rounded, color: ElyonsColors.textSecondary),
+                    icon: const Icon(Icons.keyboard_double_arrow_left_rounded, color: Colors.black, size: 24),
                   ),
                 ],
               ),
@@ -119,49 +119,45 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
               ),
             ),
 
-            // Banner Card (Inspired by blue SuperGrok promo card)
+            // Sovereign Banner Card
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
                   children: [
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'Elynos 1 Axiom • 100k Context',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
                           ),
                           SizedBox(height: 2),
                           Text(
                             '100% Offline • Low RAM (<150MB)',
-                            style: TextStyle(fontSize: 11, color: Colors.white70),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Text(
                         'Active',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1D4ED8),
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -179,12 +175,12 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                     'Conversations',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: ElyonsColors.textSecondary,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF6B7280),
                     ),
                   ),
                   Spacer(),
-                  Icon(Icons.keyboard_arrow_up_rounded, color: ElyonsColors.textMuted, size: 20),
+                  Icon(Icons.keyboard_arrow_up_rounded, color: Color(0xFF9CA3AF), size: 20),
                 ],
               ),
             ),
@@ -195,7 +191,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                   ? const Center(
                       child: Text(
                         'No conversations yet',
-                        style: TextStyle(color: ElyonsColors.textMuted, fontSize: 13),
+                        style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     )
                   : ListView.builder(
@@ -208,7 +204,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 4),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF1C222E) : Colors.transparent,
+                            color: isSelected ? const Color(0xFFF2F2F4) : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
@@ -223,18 +219,18 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 14,
-                                color: isSelected ? Colors.white : Colors.white70,
+                                color: isSelected ? Colors.black : const Color(0xFF374151),
                               ),
                             ),
                             subtitle: Text(
                               '${conv.updatedAt.day} ${_getMonth(conv.updatedAt.month)}',
-                              style: const TextStyle(fontSize: 11, color: ElyonsColors.textMuted),
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF), fontWeight: FontWeight.w600),
                             ),
                             trailing: PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert, size: 16, color: ElyonsColors.textMuted),
-                              color: const Color(0xFF1E242E),
+                              icon: const Icon(Icons.more_vert, size: 16, color: Color(0xFF9CA3AF)),
+                              color: Colors.white,
                               onSelected: (val) {
                                 if (val == 'delete') {
                                   widget.onDeleteConversation(conv.id);
@@ -243,7 +239,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                               itemBuilder: (ctx) => [
                                 const PopupMenuItem(
                                   value: 'delete',
-                                  child: Text('Delete Chat', style: TextStyle(color: Colors.redAccent, fontSize: 13)),
+                                  child: Text('Delete Chat', style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -253,7 +249,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                     ),
             ),
 
-            const Divider(color: ElyonsColors.border, height: 1),
+            const Divider(color: Color(0xFFE5E7EB), height: 1),
 
             // Bottom Actions: Search Bar, Settings, New Chat
             Padding(
@@ -265,22 +261,22 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                     child: Container(
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF191F2B),
+                        color: const Color(0xFFF2F2F4),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: ElyonsColors.border),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Row(
                         children: [
-                          const Icon(Icons.search_rounded, size: 18, color: ElyonsColors.textMuted),
+                          const Icon(Icons.search_rounded, size: 18, color: Color(0xFF9CA3AF)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
                               onChanged: (val) => setState(() => _searchQuery = val),
-                              style: const TextStyle(fontSize: 13, color: Colors.white),
+                              style: const TextStyle(fontSize: 13, color: Colors.black, fontWeight: FontWeight.w600),
                               decoration: const InputDecoration(
                                 hintText: 'Search',
-                                hintStyle: TextStyle(fontSize: 13, color: ElyonsColors.textMuted),
+                                hintStyle: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF), fontWeight: FontWeight.w600),
                                 border: InputBorder.none,
                                 isDense: true,
                               ),
@@ -294,13 +290,15 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
 
                   // Settings / Connectors Gear Icon
                   Container(
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF191F2B),
+                      color: const Color(0xFFF2F2F4),
                       shape: BoxShape.circle,
-                      border: Border.all(color: ElyonsColors.border),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.settings_outlined, color: Colors.white70, size: 20),
+                      icon: const Icon(Icons.settings_outlined, color: Colors.black87, size: 20),
                       onPressed: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -314,13 +312,15 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
 
                   // New Chat Pencil Icon
                   Container(
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF191F2B),
+                      color: const Color(0xFFF2F2F4),
                       shape: BoxShape.circle,
-                      border: Border.all(color: ElyonsColors.border),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.edit_note_rounded, color: ElyonsColors.accent, size: 22),
+                      icon: const Icon(Icons.edit_note_rounded, color: Colors.black, size: 22),
                       onPressed: () {
                         HapticFeedback.lightImpact();
                         widget.onNewChat();
@@ -345,10 +345,10 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
     return ListTile(
       dense: true,
       onTap: onTap,
-      leading: Icon(icon, color: Colors.white, size: 22),
+      leading: Icon(icon, color: Colors.black, size: 22),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: Colors.black),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );

@@ -25,7 +25,15 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        try {
+          await db.execute('ALTER TABLE messages ADD COLUMN visualAuditJson TEXT;');
+        } catch (_) {}
+        try {
+          await db.execute('ALTER TABLE messages ADD COLUMN attachedFilesJson TEXT;');
+        } catch (_) {}
+      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE conversations (
@@ -51,6 +59,8 @@ class LocalDatabaseService {
             imageUrl TEXT,
             codeArtifact TEXT,
             goalMilestonesJson TEXT,
+            visualAuditJson TEXT,
+            attachedFilesJson TEXT,
             isTemporary INTEGER DEFAULT 0,
             FOREIGN KEY (conversationId) REFERENCES conversations (id) ON DELETE CASCADE
           )
@@ -138,6 +148,16 @@ class LocalDatabaseService {
           map['goalMilestones'] = jsonDecode(map['goalMilestonesJson'] as String);
         } catch (_) {}
       }
+      if (map['visualAuditJson'] != null) {
+        try {
+          map['visualAudit'] = jsonDecode(map['visualAuditJson'] as String);
+        } catch (_) {}
+      }
+      if (map['attachedFilesJson'] != null) {
+        try {
+          map['attachedFiles'] = jsonDecode(map['attachedFilesJson'] as String);
+        } catch (_) {}
+      }
       return ChatMessage.fromMap(map);
     }).toList();
   }
@@ -145,23 +165,63 @@ class LocalDatabaseService {
   Future<void> saveMessage(ChatMessage message) async {
     if (message.isTemporary) return; // Never persist private messages
     final db = await database;
-    final map = message.toMap();
-    if (message.goalMilestones != null) {
-      map['goalMilestonesJson'] = jsonEncode(message.goalMilestones!.map((g) => g.toMap()).toList());
-    }
-    map.remove('goalMilestones');
-    await db.insert('messages', map, conflictAlgorithm: ConflictAlgorithm.replace);
 
-    // Update conversation timestamp & snippet
-    await db.update(
-      'conversations',
-      {
-        'updatedAt': message.timestamp.toIso8601String(),
-        'lastMessageSnippet': message.text.length > 60 ? '${message.text.substring(0, 60)}...' : message.text,
-      },
-      where: 'id = ?',
-      whereArgs: [message.conversationId],
-    );
+    // 1. Ensure conversation exists in conversations table to avoid Foreign Key violations
+    try {
+      final convCheck = await db.query('conversations', where: 'id = ?', whereArgs: [message.conversationId]);
+      if (convCheck.isEmpty) {
+        final convTitle = message.text.trim().isNotEmpty
+            ? (message.text.trim().length > 28 ? '${message.text.trim().substring(0, 28)}...' : message.text.trim())
+            : 'New Chat';
+        await db.insert('conversations', {
+          'id': message.conversationId,
+          'title': convTitle,
+          'createdAt': message.timestamp.toIso8601String(),
+          'updatedAt': message.timestamp.toIso8601String(),
+          'lastMessageSnippet': message.text,
+          'isPinned': 0,
+          'isPrivate': 0,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    } catch (_) {}
+
+    // 2. Build strictly typed insert map matching SQLite schema
+    final insertMap = <String, dynamic>{
+      'id': message.id,
+      'conversationId': message.conversationId,
+      'sender': message.sender,
+      'text': message.text,
+      'thinkingProcess': message.thinkingProcess,
+      'mode': message.mode.name,
+      'timestamp': message.timestamp.toIso8601String(),
+      'imageUrl': message.imageUrl,
+      'codeArtifact': message.codeArtifact,
+      'goalMilestonesJson': message.goalMilestones != null
+          ? jsonEncode(message.goalMilestones!.map((g) => g.toMap()).toList())
+          : null,
+      'visualAuditJson': message.visualAudit != null
+          ? jsonEncode(message.visualAudit)
+          : null,
+      'attachedFilesJson': message.attachedFiles != null
+          ? jsonEncode(message.attachedFiles)
+          : null,
+      'isTemporary': message.isTemporary ? 1 : 0,
+    };
+
+    await db.insert('messages', insertMap, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // 3. Update conversation timestamp & snippet
+    try {
+      await db.update(
+        'conversations',
+        {
+          'updatedAt': message.timestamp.toIso8601String(),
+          'lastMessageSnippet': message.text.length > 60 ? '${message.text.substring(0, 60)}...' : message.text,
+        },
+        where: 'id = ?',
+        whereArgs: [message.conversationId],
+      );
+    } catch (_) {}
   }
 
   // --- Training Memories ---

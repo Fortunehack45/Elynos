@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../core/theme/elynos_theme.dart';
 
 class HomeEmptyState extends StatelessWidget {
   final Function(String) onSelectPrompt;
@@ -9,71 +8,91 @@ class HomeEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Center Watermark & Logo
-        Expanded(
-          child: Center(
-            child: Opacity(
-              opacity: 0.2,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.auto_awesome,
-                    size: 58,
-                    color: Colors.white,
-                  ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 40),
+            // Grok Minimalist Header
+            Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.auto_awesome,
+                  size: 22,
+                  color: Colors.white,
                 ),
               ),
             ),
-          ),
-        ),
+            const SizedBox(height: 18),
+            const Text(
+              'What do you want to\nexplore today?',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+                letterSpacing: -0.8,
+                height: 1.15,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Elynos 1 Axiom • 100% Offline & Sovereign',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF8E8E93),
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 32),
 
-        // Quick Suggestion Pills (Screenshot 4)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              _buildPill(
-                icon: Icons.lightbulb_outline_rounded,
-                label: 'Think Deep on a Problem',
-                onTap: () => onSelectPrompt('Explain quantum superposition with step-by-step reasoning'),
-              ),
-              const SizedBox(width: 8),
-              _buildPill(
-                icon: Icons.handyman_outlined,
-                label: 'Build apps and sites',
-                onTap: () => onSelectPrompt('Build a mobile-responsive modern calculator web app'),
-              ),
-              const SizedBox(width: 8),
-              _buildPill(
-                icon: Icons.school_outlined,
-                label: 'Derive LaTeX formula',
-                onTap: () => onSelectPrompt('Derive the Euler-Lagrange equation with LaTeX formulas'),
-              ),
-              const SizedBox(width: 8),
-              _buildPill(
-                icon: Icons.flag_outlined,
-                label: 'Plan a 7-day Goal',
-                onTap: () => onSelectPrompt('Create a 7-day milestone roadmap to build an offline AI app'),
-              ),
-            ],
-          ),
+            // Category Suggestions Grid
+            _buildCategoryCard(
+              icon: Icons.lightbulb_outline_rounded,
+              title: 'Think Deep on a complex problem',
+              subtitle: 'Multi-hypothesis reasoning with strict RAM safety',
+              onTap: () => onSelectPrompt('Explain how general relativity merges with quantum thermodynamics'),
+            ),
+            const SizedBox(height: 10),
+            _buildCategoryCard(
+              icon: Icons.image_outlined,
+              title: 'Imagine & synthesize visuals',
+              subtitle: 'Autonomous high-res image generation with zero watermark',
+              onTap: () => onSelectPrompt('Generate an image of a cybernetic neon city at dusk'),
+            ),
+            const SizedBox(height: 10),
+            _buildCategoryCard(
+              icon: Icons.code_rounded,
+              title: 'Build apps & inspect codebases',
+              subtitle: 'Extract full ZIP archives, generate mobile-responsive code',
+              onTap: () => onSelectPrompt('Build a complete Flutter state management architecture pattern'),
+            ),
+            const SizedBox(height: 10),
+            _buildCategoryCard(
+              icon: Icons.functions_rounded,
+              title: 'Derive mathematical formulas',
+              subtitle: 'LaTeX step-by-step proofs and equation solvers',
+              onTap: () => onSelectPrompt('Derive the Euler-Lagrange equations of motion in classical mechanics'),
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildPill({
+  Widget _buildCategoryCard({
     required IconData icon,
-    required String label,
+    required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -81,27 +100,52 @@ class HomeEmptyState extends StatelessWidget {
         HapticFeedback.lightImpact();
         onTap();
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF161C26),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: ElyonsColors.border),
+          color: const Color(0xFFF7F7F8),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: ElyonsColors.accent),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEAEAEB),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 18, color: Colors.black),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
               ),
             ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFF9CA3AF)),
           ],
         ),
       ),

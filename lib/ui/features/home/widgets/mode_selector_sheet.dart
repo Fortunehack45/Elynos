@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../domain/models/intelligence_mode.dart';
-import '../../../core/theme/elynos_theme.dart';
 
 class ModeSelectorSheet extends StatelessWidget {
   final IntelligenceMode currentMode;
@@ -17,7 +16,7 @@ class ModeSelectorSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF131720),
+        color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
@@ -34,7 +33,7 @@ class ModeSelectorSheet extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: ElyonsColors.border,
+                color: const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -44,14 +43,14 @@ class ModeSelectorSheet extends StatelessWidget {
           // Header
           Row(
             children: [
-              const Icon(Icons.blur_on_rounded, color: ElyonsColors.accent, size: 22),
+              const Icon(Icons.bolt, color: Colors.black, size: 24),
               const SizedBox(width: 8),
               const Text(
-                'Elynos Intelligence',
+                'Intelligence Modes',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -59,15 +58,15 @@ class ModeSelectorSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: ElyonsColors.accent.withOpacity(0.15),
+                  color: const Color(0xFFF2F2F4),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  '100% Free',
+                  '100% Offline',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: ElyonsColors.accent,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -75,8 +74,8 @@ class ModeSelectorSheet extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Powered by Elynos 1 Axiom • 100k Virtual Context • Ultra Low RAM',
-            style: TextStyle(fontSize: 13, color: ElyonsColors.textSecondary),
+            'Elynos 1 Axiom • 100k Virtual Context • Sub-150MB RAM',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 16),
 
@@ -98,10 +97,10 @@ class ModeSelectorSheet extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF1E2533) : Colors.transparent,
+                          color: isSelected ? const Color(0xFFF2F2F4) : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isSelected ? ElyonsColors.accent.withOpacity(0.4) : Colors.transparent,
+                            color: isSelected ? const Color(0xFFE5E7EB) : Colors.transparent,
                           ),
                         ),
                         child: Row(
@@ -109,14 +108,12 @@ class ModeSelectorSheet extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? ElyonsColors.accent.withOpacity(0.2)
-                                    : const Color(0xFF1A1F2B),
+                                color: isSelected ? Colors.black : const Color(0xFFF2F2F4),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
                                 mode.icon,
-                                color: isSelected ? ElyonsColors.accent : ElyonsColors.textSecondary,
+                                color: isSelected ? Colors.white : Colors.black,
                                 size: 20,
                               ),
                             ),
@@ -129,10 +126,10 @@ class ModeSelectorSheet extends StatelessWidget {
                                     children: [
                                       Text(
                                         mode.displayName,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          color: isSelected ? Colors.white : Colors.white70,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.black,
                                         ),
                                       ),
                                       if (mode.isBeta) ...[
@@ -140,12 +137,12 @@ class ModeSelectorSheet extends StatelessWidget {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF2C3242),
+                                            color: const Color(0xFFE5E7EB),
                                             borderRadius: BorderRadius.circular(6),
                                           ),
                                           child: const Text(
                                             'Beta',
-                                            style: TextStyle(fontSize: 10, color: Colors.white70),
+                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87),
                                           ),
                                         ),
                                       ],
@@ -156,7 +153,8 @@ class ModeSelectorSheet extends StatelessWidget {
                                     mode.subtitle,
                                     style: const TextStyle(
                                       fontSize: 12,
-                                      color: ElyonsColors.textMuted,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF6B7280),
                                     ),
                                   ),
                                 ],
@@ -164,9 +162,9 @@ class ModeSelectorSheet extends StatelessWidget {
                             ),
                             if (isSelected)
                               const Icon(
-                                Icons.check_rounded,
-                                color: ElyonsColors.accent,
-                                size: 20,
+                                Icons.check_circle_rounded,
+                                color: Colors.black,
+                                size: 22,
                               ),
                           ],
                         ),
