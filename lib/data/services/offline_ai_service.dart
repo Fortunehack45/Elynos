@@ -830,7 +830,7 @@ class CustomFeatureWidget extends StatelessWidget {
             '\$\$$processed\$\$\n\n'
             '**Breakdown**:\n'
             '- **Processed Notation**: The raw input was parsed into clean mathematical notation: **$processed**.\n'
-            '- **Theoretical Meaning**: In algorithmic and mathematical analysis, this represents linearithmic complexity $O(N \\log N)$ coupled with amortized bounds (guaranteeing that average operation cost remains strictly bounded).\n'
+            '- **Theoretical Meaning**: In algorithmic and mathematical analysis, this represents linearithmic complexity \$O(N \\log N)\$ coupled with amortized bounds (guaranteeing that average operation cost remains strictly bounded).\n'
             '- **Evaluation**: Optimal balance between computational throughput and cache utilization.',
       );
     }
