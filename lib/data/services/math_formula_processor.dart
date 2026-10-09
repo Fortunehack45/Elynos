@@ -257,98 +257,106 @@ class MathFormulaProcessor {
     return str.replaceAll(RegExp(r'\.?0+$'), '');
   }
 
-  // --- Recursive Descent Arithmetic Parser ---
   static double? _evaluateExpression(String str) {
-    int pos = -1;
-    int ch = -1;
-
-    void nextChar() {
-      pos++;
-      ch = pos < str.length ? str.codeUnitAt(pos) : -1;
-    }
-
-    bool eat(int charToEat) {
-      while (ch == 32) { // space
-        nextChar();
-      }
-      if (ch == charToEat) {
-        nextChar();
-        return true;
-      }
-      return false;
-    }
-
-    double parseExpression() {
-      double x = parseTerm();
-      while (true) {
-        if (eat(43)) { // '+'
-          x += parseTerm();
-        } else if (eat(45)) { // '-'
-          x -= parseTerm();
-        } else {
-          return x;
-        }
-      }
-    }
-
-    double parseTerm() {
-      double x = parseFactor();
-      while (true) {
-        if (eat(42)) { // '*'
-          // check if '**'
-          if (eat(42)) {
-            x = math.pow(x, parseFactor()).toDouble();
-          } else {
-            x *= parseFactor();
-          }
-        } else if (eat(47)) { // '/'
-          final divisor = parseFactor();
-          if (divisor == 0) return double.infinity;
-          x /= divisor;
-        } else if (eat(37)) { // '%'
-          x %= parseFactor();
-        } else {
-          return x;
-        }
-      }
-    }
-
-    double parseFactor() {
-      if (eat(43)) return parseFactor(); // unary '+'
-      if (eat(45)) return -parseFactor(); // unary '-'
-
-      double x;
-      final startPos = pos;
-
-      if (eat(40)) { // '('
-        x = parseExpression();
-        eat(41); // ')'
-      } else if ((ch >= 48 && ch <= 57) || ch == 46) { // numbers or '.'
-        while ((ch >= 48 && ch <= 57) || ch == 46) {
-          nextChar();
-        }
-        x = double.parse(str.substring(startPos, pos));
-      } else {
-        throw FormatException('Unexpected character: ${String.fromCharCode(ch)}');
-      }
-
-      // Check power after factor (e.g. 2^3)
-      if (eat(94)) { // '^'
-        x = math.pow(x, parseFactor()).toDouble();
-      }
-
-      return x;
-    }
-
     try {
-      nextChar();
-      final result = parseExpression();
-      if (pos < str.length) {
-        return null;
-      }
-      return result;
+      final parser = _ExpressionParser(str);
+      return parser.parse();
     } catch (_) {
       return null;
     }
+  }
+}
+
+class _ExpressionParser {
+  final String str;
+  int pos = -1;
+  int ch = -1;
+
+  _ExpressionParser(this.str) {
+    _nextChar();
+  }
+
+  void _nextChar() {
+    pos++;
+    ch = pos < str.length ? str.codeUnitAt(pos) : -1;
+  }
+
+  bool _eat(int charToEat) {
+    while (ch == 32) {
+      _nextChar();
+    }
+    if (ch == charToEat) {
+      _nextChar();
+      return true;
+    }
+    return false;
+  }
+
+  double parse() {
+    final x = _parseExpression();
+    if (pos < str.length) {
+      throw const FormatException('Unexpected trailing characters');
+    }
+    return x;
+  }
+
+  double _parseExpression() {
+    double x = _parseTerm();
+    while (true) {
+      if (_eat(43)) {
+        x += _parseTerm();
+      } else if (_eat(45)) {
+        x -= _parseTerm();
+      } else {
+        return x;
+      }
+    }
+  }
+
+  double _parseTerm() {
+    double x = _parseFactor();
+    while (true) {
+      if (_eat(42)) {
+        if (_eat(42)) {
+          x = math.pow(x, _parseFactor()).toDouble();
+        } else {
+          x *= _parseFactor();
+        }
+      } else if (_eat(47)) {
+        final divisor = _parseFactor();
+        if (divisor == 0) return double.infinity;
+        x /= divisor;
+      } else if (_eat(37)) {
+        x %= _parseFactor();
+      } else {
+        return x;
+      }
+    }
+  }
+
+  double _parseFactor() {
+    if (_eat(43)) return _parseFactor();
+    if (_eat(45)) return -_parseFactor();
+
+    double x;
+    final startPos = pos;
+
+    if (_eat(40)) {
+      x = _parseExpression();
+      _eat(41);
+    } else if ((ch >= 48 && ch <= 57) || ch == 46) {
+      while ((ch >= 48 && ch <= 57) || ch == 46) {
+        _nextChar();
+      }
+      x = double.parse(str.substring(startPos, pos));
+    } else {
+      throw FormatException('Unexpected character: ${ch == -1 ? "EOF" : String.fromCharCode(ch)}');
+    }
+
+    if (_eat(94)) {
+      x = math.pow(x, _parseFactor()).toDouble();
+    }
+
+    return x;
   }
 }

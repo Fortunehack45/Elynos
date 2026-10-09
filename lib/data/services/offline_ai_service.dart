@@ -428,9 +428,18 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
   OfflineAiResponse _generateDynamicStudyResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
     final resolved = _deduceTopicAnswer(prompt, lower);
 
+    String formulaBlock = '';
+    if (lower.contains('calculus')) {
+      formulaBlock = '\n\n#### Fundamental Theorem of Calculus\n'
+          r'$$\int_{a}^{b} f(x) \, dx = F(b) - F(a)$$' '\n';
+    } else if (!resolved.body.contains(r'$$')) {
+      formulaBlock = '\n\n#### Core Mathematical / Theoretical Principle\n'
+          r'$$\Delta S \ge 0 \quad \text{Thermodynamic Invariant}$$' '\n';
+    }
+
     final text = '### 🎓 Study Breakdown: ${resolved.title}\n\n'
         '#### Core Concept\n'
-        '${resolved.body}\n\n'
+        '${resolved.body}$formulaBlock\n'
         '#### Key Takeaway\n'
         '> **Rule**: When analyzing ${resolved.domain.toLowerCase()}, isolate fundamental variables first, then verify step-by-step.'
         '${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
