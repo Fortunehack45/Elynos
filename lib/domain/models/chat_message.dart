@@ -44,6 +44,8 @@ class ChatMessage {
   final String? codeArtifact;
   final List<GoalMilestone>? goalMilestones;
   final bool isTemporary;
+  final Map<String, dynamic>? visualAudit;
+  final List<String>? attachedFiles;
 
   ChatMessage({
     required this.id,
@@ -57,6 +59,8 @@ class ChatMessage {
     this.codeArtifact,
     this.goalMilestones,
     this.isTemporary = false,
+    this.visualAudit,
+    this.attachedFiles,
   });
 
   bool get isUser => sender == 'user';
@@ -64,6 +68,7 @@ class ChatMessage {
   bool get hasGoal => goalMilestones != null && goalMilestones!.isNotEmpty;
   bool get hasImage => imageUrl != null && imageUrl!.trim().isNotEmpty;
   bool get hasCodeArtifact => codeArtifact != null && codeArtifact!.trim().isNotEmpty;
+  bool get hasVisualAudit => visualAudit != null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -80,6 +85,8 @@ class ChatMessage {
           ? goalMilestones!.map((m) => m.toMap()).toList()
           : null,
       'isTemporary': isTemporary ? 1 : 0,
+      'visualAudit': visualAudit,
+      'attachedFiles': attachedFiles,
     };
   }
 
@@ -88,6 +95,16 @@ class ChatMessage {
     if (map['goalMilestones'] != null) {
       final list = map['goalMilestones'] as List<dynamic>;
       milestones = list.map((item) => GoalMilestone.fromMap(Map<String, dynamic>.from(item))).toList();
+    }
+
+    List<String>? files;
+    if (map['attachedFiles'] != null) {
+      files = List<String>.from(map['attachedFiles'] as List);
+    }
+
+    Map<String, dynamic>? audit;
+    if (map['visualAudit'] != null) {
+      audit = Map<String, dynamic>.from(map['visualAudit'] as Map);
     }
 
     return ChatMessage(
@@ -105,6 +122,8 @@ class ChatMessage {
       codeArtifact: map['codeArtifact'] as String?,
       goalMilestones: milestones,
       isTemporary: (map['isTemporary'] == 1 || map['isTemporary'] == true),
+      visualAudit: audit,
+      attachedFiles: files,
     );
   }
 }

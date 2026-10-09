@@ -135,9 +135,10 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   // --- Message Sending ---
-  Future<void> sendMessage(String text) async {
+  Future<void> sendMessage(String text, {List<String> attachedFiles = const []}) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty && attachedFiles.isEmpty) return;
+    final promptText = trimmed.isEmpty ? 'Inspect and process attached file(s)' : trimmed;
 
     final convId = _isPrivateMode
         ? 'private_session'
@@ -149,7 +150,7 @@ class HomeViewModel extends ChangeNotifier {
     try {
       // If first message in conversation, update title
       if (!_isPrivateMode && _messages.isEmpty && _activeConversationId != null) {
-        final title = trimmed.length > 28 ? '${trimmed.substring(0, 28)}...' : trimmed;
+        final title = promptText.length > 28 ? '${promptText.substring(0, 28)}...' : promptText;
         final conv = _conversations.firstWhere((c) => c.id == _activeConversationId);
         conv.title = title;
         await _chatRepository.saveConversation(conv);
@@ -157,9 +158,10 @@ class HomeViewModel extends ChangeNotifier {
 
       await _sendMessageUseCase.execute(
         conversationId: convId,
-        prompt: trimmed,
+        prompt: promptText,
         mode: _currentMode,
         isPrivate: _isPrivateMode,
+        attachedFiles: attachedFiles,
       );
 
       // Refresh messages

@@ -24,6 +24,7 @@ class SendMessageUseCase {
     required String prompt,
     required IntelligenceMode mode,
     bool isPrivate = false,
+    List<String> attachedFiles = const [],
   }) async {
     final now = DateTime.now();
 
@@ -36,6 +37,7 @@ class SendMessageUseCase {
       mode: mode,
       timestamp: now,
       isTemporary: isPrivate,
+      attachedFiles: attachedFiles.isNotEmpty ? attachedFiles : null,
     );
     await _chatRepository.saveMessage(userMsg);
 
@@ -53,6 +55,7 @@ class SendMessageUseCase {
       activeMemories: memories,
       conversationId: isPrivate ? null : conversationId,
       isOnline: isOnline,
+      attachedFiles: attachedFiles,
     );
 
     // 5. Create assistant message
@@ -68,6 +71,7 @@ class SendMessageUseCase {
       codeArtifact: aiResult.codeArtifact,
       goalMilestones: aiResult.goalMilestones,
       isTemporary: isPrivate,
+      visualAudit: aiResult.visualAudit?.toJson(),
     );
 
     await _chatRepository.saveMessage(assistantMsg);

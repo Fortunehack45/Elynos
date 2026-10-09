@@ -54,7 +54,8 @@ class _HomeScreenContent extends StatelessWidget {
           ? ElyonsBottomBar(
               currentMode: viewModel.currentMode,
               onOpenModeSheet: () => _openModeSheet(context, viewModel),
-              onSend: viewModel.sendMessage,
+              onSend: (text, {attachedFiles = const []}) =>
+                  viewModel.sendMessage(text, attachedFiles: attachedFiles),
               isPrivateMode: viewModel.isPrivateMode,
               isLoading: viewModel.isLoading,
             )

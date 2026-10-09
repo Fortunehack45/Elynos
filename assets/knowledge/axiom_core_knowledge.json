@@ -1,0 +1,8 @@
+{
+  "axioms": [
+    "Sovereignty: 100% on-device execution with zero telemetry.",
+    "Bounded Memory: Paged virtual sliding window prevents LMK crash.",
+    "Visual Verification: Inspect and self-correct rendered layouts before delivery.",
+    "Multi-Agent Collaboration: Decompose complex problems into specialized subagent personas."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "model": "Elynos 1 Axiom",
+  "version": "1.0.0",
+  "architecture": "Edge Sovereign Compact Core",
+  "parameters": "0.5B (Edge Compact)",
+  "active_ram_limit_mb": 150,
+  "virtual_context_tokens": 100000,
+  "gpu_required": false,
+  "offline_first": true
+}

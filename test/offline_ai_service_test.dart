@@ -82,5 +82,19 @@ void main() {
       expect(OfflineAiService.maxVirtualContextTokens, 100000);
       expect(OfflineAiService.activeRamWindowTokens, 4096);
     });
+
+    test('Visual perception inspects image and generates pre-flight QA report', () async {
+      final response = await service.generateResponse(
+        prompt: 'Look at this diagram and visualize it',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+        attachedFiles: ['mockup_screen.png'],
+      );
+
+      expect(response.visualAudit, isNotNull);
+      expect(response.visualAudit!.preFlightApproved, isTrue);
+      expect(response.visualAudit!.qualityScore, greaterThan(0.90));
+      expect(response.text.contains('Visual') || response.text.contains('visual'), isTrue);
+    });
   });
 }
