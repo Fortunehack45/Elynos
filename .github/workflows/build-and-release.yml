@@ -3,10 +3,18 @@ name: Elynos CI/CD - Build APK, AAB & Release
 on:
   push:
     branches: [ main, master ]
+    paths-ignore:
+      - 'README.md'
+      - 'test/**'
+      - 'docs/**'
     tags:
       - 'v*'
   pull_request:
     branches: [ main, master ]
+    paths-ignore:
+      - 'README.md'
+      - 'test/**'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
