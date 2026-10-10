@@ -272,8 +272,12 @@ class OfflineAiService {
 
     // Attach visual audit report if present
     if (response.visualAudit == null && attachedVisualAudit != null) {
+      final auditText = '\n\n[Visual Audit: Layout verified, ${(attachedVisualAudit.qualityScore * 100).toInt()}% quality]';
+      final fullText = response.text.contains('Visual') || response.text.contains('visual')
+          ? response.text
+          : '${response.text}$auditText';
       return OfflineAiResponse(
-        text: response.text,
+        text: fullText,
         thinkingProcess: response.thinkingProcess,
         codeArtifact: response.codeArtifact,
         goalMilestones: response.goalMilestones,
@@ -421,13 +425,20 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
       );
     }
 
-    if (lower.contains('who are you') || lower.contains('what are you') || lower.contains('hello') || lower.contains('hi') || lower.contains('hey') || lower.contains('elynos')) {
+    final isGreeting = RegExp(r'\b(?:hi|hello|hey|who are you|what are you)\b', caseSensitive: false).hasMatch(prompt) ||
+        lower.startsWith('hello') ||
+        lower.startsWith('hi ') ||
+        lower == 'hi';
+
+    if (isGreeting) {
+      final greet = 'Hello! I am **Elynos AI**, powered by the on-device **Elynos 1 Axiom** engine.\n\n'
+          '- **Direct & Accurate**: I answer your questions directly without evasiveness.\n'
+          '- **Mathematical Processing**: I evaluate arithmetic and format formulas into clean math.\n'
+          '- **Sovereign & Private**: Runs on your phone with zero data harvesting.\n\n'
+          'What would you like to solve or build today?';
+      final text = '$greet${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
       return OfflineAiResponse(
-        text: 'Hello! I am **Elynos AI**, powered by the on-device **Elynos 1 Axiom** engine.\n\n'
-            '- **Direct & Accurate**: I answer your questions directly without evasiveness.\n'
-            '- **Mathematical Processing**: I evaluate arithmetic and format formulas into clean math.\n'
-            '- **Sovereign & Private**: Runs on your phone with zero data harvesting.\n\n'
-            'What would you like to solve or build today?',
+        text: text,
         retrievedContextChunksCount: retrievedChunks,
       );
     }
