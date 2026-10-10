@@ -252,45 +252,69 @@ class MathFormulaProcessor {
 
     String s = rawLatex.trim();
 
+    // 0. Strip math delimiters \(...\), \[...\], $$, $
+    if (s.startsWith(r'\(') && s.endsWith(r'\)')) {
+      s = s.substring(2, s.length - 2).trim();
+    } else if (s.startsWith(r'\[') && s.endsWith(r'\]')) {
+      s = s.substring(2, s.length - 2).trim();
+    } else if (s.startsWith(r'$$') && s.endsWith(r'$$')) {
+      s = s.substring(2, s.length - 2).trim();
+    } else if (s.startsWith(r'$') && s.endsWith(r'$')) {
+      s = s.substring(1, s.length - 1).trim();
+    }
+
     // 1. Mathcal / Big-O
     s = s.replaceAll(RegExp(r'\\mathcal\{O\}|\\mathcal\{o\}|\\mathcal\{0\}'), 'O');
     s = s.replaceAll(RegExp(r'\\mathcal\{([A-Za-z])\}'), r'𝒪(\1)');
 
-    // 2. Text / styling macros
+    // 2. Physics & Fundamental Constants
+    s = s.replaceAll(RegExp(r'\\hbar'), 'ℏ');
+    s = s.replaceAll(RegExp(r'\\ell_P'), 'ℓ_P');
+    s = s.replaceAll(RegExp(r'\\ell'), 'ℓ');
+
+    // 3. Text / styling macros
     s = s.replaceAllMapped(RegExp(r'\\(?:text|mathrm|mathbf|mathit)\{([^}]*)\}'), (m) => m.group(1) ?? '');
 
-    // 3. Spacing commands
+    // 4. Spacing commands
     s = s.replaceAll(RegExp(r'\\qquad'), '    ');
     s = s.replaceAll(RegExp(r'\\quad'), '   ');
     s = s.replaceAll(RegExp(r'\\[,;! ]'), ' ');
 
-    // 4. Fractions: \frac{a}{b} -> (a) / (b)
-    s = s.replaceAllMapped(RegExp(r'\\frac\{([^}]*)\}\{([^}]*)\}'), (m) {
-      final num = m.group(1)?.trim() ?? '';
-      final den = m.group(2)?.trim() ?? '';
-      if (!num.contains(' ') && !den.contains(' ')) {
-        return '$num / $den';
-      }
-      return '($num) / ($den)';
-    });
+    // 5. Fractions (\frac and \dfrac with possible nested braces)
+    // Run multiple passes for nested fractions
+    for (int p = 0; p < 3; p++) {
+      s = s.replaceAllMapped(RegExp(r'\\d?frac\{([^{}]*)\}\{([^{}]*)\}'), (m) {
+        final num = m.group(1)?.trim() ?? '';
+        final den = m.group(2)?.trim() ?? '';
+        final cleanNum = num.isEmpty ? '1' : num;
+        final cleanDen = den.isEmpty ? '1' : den;
+        if (!cleanNum.contains(' ') && !cleanNum.contains('+') && !cleanNum.contains('-')) {
+          if (!cleanDen.contains(' ') && !cleanDen.contains('+') && !cleanDen.contains('-')) {
+            return '$cleanNum / $cleanDen';
+          }
+          return '$cleanNum / ($cleanDen)';
+        }
+        return '($cleanNum) / ($cleanDen)';
+      });
+    }
 
-    // 5. Roots: \sqrt[n]{x} or \sqrt{x}
+    // 6. Roots: \sqrt[n]{x} or \sqrt{x}
     s = s.replaceAllMapped(RegExp(r'\\sqrt\{([^}]*)\}'), (m) => '√(${m.group(1)?.trim()})');
     s = s.replaceAllMapped(RegExp(r'\\sqrt\[([^\]]*)\]\{([^}]*)\}'), (m) => '${m.group(1)}√(${m.group(2)?.trim()})');
 
-    // 6. Integrals, Sums, Limits
+    // 7. Integrals, Sums, Limits
     s = s.replaceAllMapped(RegExp(r'\\int_\{?([^}^_]*)\}?\^\{?([^}]*)\}?'), (m) => '∫ [${m.group(1)} → ${m.group(2)}] ');
     s = s.replaceAll(RegExp(r'\\int'), '∫ ');
     s = s.replaceAllMapped(RegExp(r'\\sum_\{?([^}^_]*)\}?\^\{?([^}]*)\}?'), (m) => '∑ [${m.group(1)} → ${m.group(2)}] ');
     s = s.replaceAll(RegExp(r'\\sum'), '∑ ');
     s = s.replaceAll(RegExp(r'\\prod'), '∏ ');
 
-    // 7. Vector calculus & differentials
+    // 8. Vector calculus & differentials
     s = s.replaceAll(RegExp(r'\\nabla'), '∇');
     s = s.replaceAll(RegExp(r'\\partial'), '∂');
     s = s.replaceAll(RegExp(r'\\infty'), '∞');
 
-    // 8. Operators
+    // 9. Operators
     s = s.replaceAll(RegExp(r'\\times'), '×');
     s = s.replaceAll(RegExp(r'\\cdot'), '·');
     s = s.replaceAll(RegExp(r'\\div'), '÷');
@@ -306,7 +330,7 @@ class MathFormulaProcessor {
     s = s.replaceAll(RegExp(r'\\notin'), '∉');
     s = s.replaceAll(RegExp(r'\\subset(?:eq)?'), '⊆');
 
-    // 9. Standard mathematical functions
+    // 10. Standard mathematical functions
     s = s.replaceAll(RegExp(r'\\log'), 'log');
     s = s.replaceAll(RegExp(r'\\ln'), 'ln');
     s = s.replaceAll(RegExp(r'\\exp'), 'exp');
@@ -316,7 +340,7 @@ class MathFormulaProcessor {
     s = s.replaceAll(RegExp(r'\\det'), 'det');
     s = s.replaceAll(RegExp(r'\\lim'), 'lim');
 
-    // 10. Greek symbols
+    // 11. Greek symbols (Full lowercase & uppercase)
     s = s.replaceAll(RegExp(r'\\alpha'), 'α');
     s = s.replaceAll(RegExp(r'\\beta'), 'β');
     s = s.replaceAll(RegExp(r'\\gamma'), 'γ');
@@ -326,21 +350,34 @@ class MathFormulaProcessor {
     s = s.replaceAll(RegExp(r'\\zeta'), 'ζ');
     s = s.replaceAll(RegExp(r'\\eta'), 'η');
     s = s.replaceAll(RegExp(r'\\theta'), 'θ');
+    s = s.replaceAll(RegExp(r'\\kappa'), 'κ');
     s = s.replaceAll(RegExp(r'\\lambda'), 'λ');
     s = s.replaceAll(RegExp(r'\\mu_0'), 'μ₀');
     s = s.replaceAll(RegExp(r'\\mu'), 'μ');
+    s = s.replaceAll(RegExp(r'\\nu'), 'ν');
+    s = s.replaceAll(RegExp(r'\\xi'), 'ξ');
     s = s.replaceAll(RegExp(r'\\pi'), 'π');
     s = s.replaceAll(RegExp(r'\\rho'), 'ρ');
     s = s.replaceAll(RegExp(r'\\sigma'), 'σ');
     s = s.replaceAll(RegExp(r'\\tau'), 'τ');
+    s = s.replaceAll(RegExp(r'\\upsilon'), 'υ');
     s = s.replaceAll(RegExp(r'\\phi'), 'φ');
+    s = s.replaceAll(RegExp(r'\\chi'), 'χ');
     s = s.replaceAll(RegExp(r'\\psi'), 'ψ');
     s = s.replaceAll(RegExp(r'\\omega'), 'ω');
+    s = s.replaceAll(RegExp(r'\\Gamma'), 'Γ');
     s = s.replaceAll(RegExp(r'\\Delta'), 'Δ');
+    s = s.replaceAll(RegExp(r'\\Theta'), 'Θ');
+    s = s.replaceAll(RegExp(r'\\Lambda'), 'Λ');
+    s = s.replaceAll(RegExp(r'\\Xi'), 'Ξ');
+    s = s.replaceAll(RegExp(r'\\Pi'), 'Π');
     s = s.replaceAll(RegExp(r'\\Sigma'), 'Σ');
+    s = s.replaceAll(RegExp(r'\\Upsilon'), 'Υ');
+    s = s.replaceAll(RegExp(r'\\Phi'), 'Φ');
+    s = s.replaceAll(RegExp(r'\\Psi'), 'Ψ');
     s = s.replaceAll(RegExp(r'\\Omega'), 'Ω');
 
-    // 11. Common Superscripts & Subscripts
+    // 12. Common Superscripts & Subscripts
     s = s.replaceAll('^2', '²');
     s = s.replaceAll('^3', '³');
     s = s.replaceAll('^0', '⁰');
@@ -367,11 +404,15 @@ class MathFormulaProcessor {
     s = s.replaceAll('_8', '₈');
     s = s.replaceAll('_9', '₉');
 
-    // 12. Strip leftover backslashes and curlies cleanly
+    // Subscripts for common physics variables
+    s = s.replaceAll('_{BH}', '_{BH}');
+    s = s.replaceAll('_{total}', '_{total}');
+
+    // 13. Strip leftover backslashes and curlies cleanly
     s = s.replaceAll(RegExp(r'\\([a-zA-Z]+)'), r'\1');
     s = s.replaceAll('{', '').replaceAll('}', '');
 
-    // 13. If formula is an evaluable arithmetic expression without '=', evaluate it!
+    // 14. If formula is an evaluable arithmetic expression without '=', evaluate it!
     if (!s.contains('=')) {
       final eval = evaluateMath(s);
       if (eval != null) {

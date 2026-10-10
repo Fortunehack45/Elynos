@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../domain/models/conversation.dart';
 import '../../../core/theme/elynos_theme.dart';
 import '../../training/views/training_screen.dart';
@@ -116,28 +117,57 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                     },
                   ),
                   _buildMenuItem(
+                    icon: Icons.system_update_alt_rounded,
+                    title: 'Check for Updates',
+                    badge: 'v1.0.3',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showUpdateDialog(context);
+                    },
+                  ),
+                  _buildMenuItem(
                     icon: Icons.hub_outlined,
                     title: 'Connectors',
                     badge: 'Coming Soon',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ConnectorsScreen()),
-                      );
+                      _showConnectorsComingSoonDialog(context);
                     },
                   ),
                 ],
               ),
             ),
 
-            // Sovereign Banner Card
+            // Sovereign Banner Card (Tappable Model Studio)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.black,
+              child: InkWell(
+                onTap: () => _showModelStudio(context),
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Elynos 1 Axiom • 1M Context',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              '100% Sovereign • 2.5B On-Device (<150MB)',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
@@ -387,5 +417,241 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
   String _getMonth(int month) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[month - 1];
+  }
+
+  void _showUpdateDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Elynos AI v1.0.3', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Colors.black)),
+                  Text('Super Intelligent Edition', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'What\'s New in v1.0.3:',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: Colors.black),
+            ),
+            const SizedBox(height: 8),
+            _buildUpdateBullet('⚡ Heavy Mode Multi-Perspective Panel (Architect + Code + Auditor)'),
+            _buildUpdateBullet('🧠 Zero-Amnesia Context Memory (Seamless multi-turn tracking)'),
+            _buildUpdateBullet('📐 Clean LaTeX Typography (Formulas render without grey box)'),
+            _buildUpdateBullet('⏱️ Dynamic Thinking Timers (No more hardcoded 1s)'),
+            _buildUpdateBullet('💾 Resilient Past Chat Persistence & Instant Hydration'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Ready for direct APK download from GitHub Releases.',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6B7280))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final url = Uri.parse('https://github.com/Fortunehack45/Elynos/releases/latest');
+              try {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              } catch (_) {}
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.download_rounded, size: 16, color: Colors.white),
+                SizedBox(width: 6),
+                Text('Download APK', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpdateBullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConnectorsComingSoonDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.hub_outlined, color: Colors.black, size: 24),
+            SizedBox(width: 10),
+            Text('Connectors', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F4),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text('Coming Soon in v1.1.0', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black)),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Autonomous connectors for GitHub, Notion, Slack, and Google Drive are currently under development. In this release, all integrations operate 100% locally and safely.',
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: Color(0xFF4B5563), height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showModelStudio(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Elynos 1 Axiom • Model Studio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
+              const SizedBox(height: 4),
+              const Text('Dual-Engine Architecture: Online Foundation + Sovereign 2.5B On-Device', style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
+              const SizedBox(height: 16),
+              _buildStudioSpecTile(Icons.memory_rounded, 'Virtual Context Window', '1,000,000 Tokens (Paged SQLite Window)'),
+              _buildStudioSpecTile(Icons.speed_rounded, 'Quantization & Precision', '4-bit Q4_K_M Sovereign Quantization'),
+              _buildStudioSpecTile(Icons.security_rounded, 'Active Memory Safety', '<150MB Peak RAM Invariant'),
+              _buildStudioSpecTile(Icons.download_done_rounded, 'On-Device 2.5B Weights', 'Installed & Operational (Zero Data Harvesting)'),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Active & Sovereign', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStudioSpecTile(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, size: 18, color: Colors.black),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black)),
+                Text(value, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF6B7280))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

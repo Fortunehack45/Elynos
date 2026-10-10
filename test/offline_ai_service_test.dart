@@ -190,5 +190,84 @@ void main() {
       expect(response.text.contains('Elynos 1 Axiom'), isTrue);
       expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
     });
+
+    test('Heavy mode generates full multi-perspective engineering panel with runnable Flutter code', () async {
+      final response = await service.generateResponse(
+        prompt: 'help me to create a scientific calculator',
+        mode: IntelligenceMode.heavy,
+        activeMemories: [],
+      );
+
+      expect(response.thinkingProcess, isNotNull);
+      expect(response.text.contains('Lead Architect'), isTrue);
+      expect(response.text.contains('Implementation Specialist'), isTrue);
+      expect(response.text.contains('Verification Auditor'), isTrue);
+      expect(response.text.contains('class ScientificCalculatorView'), isTrue);
+      expect(response.text.contains('```dart'), isTrue);
+    });
+
+    test('Follow-up "continue" on Heavy mode maintains context and advances to Phase 2', () async {
+      final history = [
+        ChatMessage(
+          id: '1',
+          conversationId: 'c2',
+          sender: 'user',
+          text: 'help me to create a scientific calculator',
+          mode: IntelligenceMode.heavy,
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      final response = await service.generateResponse(
+        prompt: 'continue',
+        mode: IntelligenceMode.heavy,
+        activeMemories: [],
+        conversationHistory: history,
+      );
+
+      expect(response.text.contains('Scientific Calculator'), isTrue);
+      expect(response.text.contains('Phase 2'), isTrue);
+      expect(response.text.contains('ExpressionParser'), isTrue);
+      expect(response.text.contains('Shunting-Yard'), isTrue);
+      expect(response.text.contains("Could you let me know what you'd like to continue with?"), isFalse);
+    });
+
+    test('Follow-up "the principles" on calculus resolves context and outputs the 5 foundational principles', () async {
+      final history = [
+        ChatMessage(
+          id: '1',
+          conversationId: 'c3',
+          sender: 'user',
+          text: 'Teach me calculus',
+          mode: IntelligenceMode.study,
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      final response = await service.generateResponse(
+        prompt: 'the principles',
+        mode: IntelligenceMode.study,
+        activeMemories: [],
+        conversationHistory: history,
+      );
+
+      expect(response.text.contains('Foundational Principles of Calculus'), isTrue);
+      expect(response.text.contains(r'$$'), isTrue);
+      expect(response.text.contains('Fundamental Theorem of Calculus'), isTrue);
+      expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
+    });
+
+    test('Black hole query outputs four laws with Bekenstein-Hawking entropy formula', () async {
+      final response = await service.generateResponse(
+        prompt: 'What are the laws of black hole thermodynamics?',
+        mode: IntelligenceMode.expert,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('Laws of Black Hole Thermodynamics'), isTrue);
+      expect(response.text.contains(r'S_{\text{BH}}'), isTrue);
+      expect(response.text.contains(r'T_H'), isTrue);
+      expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
+    });
   });
 }

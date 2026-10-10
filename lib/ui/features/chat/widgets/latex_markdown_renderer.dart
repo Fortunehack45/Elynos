@@ -12,79 +12,41 @@ class LatexMarkdownRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if content contains block math ($$...$$)
-    if (content.contains('\$\$')) {
-      final parts = content.split('\$\$');
+    // 1. Normalize LaTeX delimiters: \[...\] -> $$...$$ and \(...\) -> $...$
+    String normalized = content;
+    normalized = normalized.replaceAllMapped(RegExp(r'\\\[([\s\S]*?)\\\]'), (m) => '\n\n\$\$${m.group(1)?.trim()}\$\$\n\n');
+    normalized = normalized.replaceAllMapped(RegExp(r'\\\(([\s\S]*?)\\\)'), (m) => '\$${m.group(1)?.trim()}\$');
+
+    // 2. Check if content contains block math ($$...$$)
+    if (normalized.contains('\$\$')) {
+      final parts = normalized.split('\$\$');
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: List.generate(parts.length, (index) {
           if (index.isOdd) {
             final rawFormula = parts[index].trim();
             final processedFormula = MathFormulaProcessor.processLatex(rawFormula);
+            if (processedFormula.isEmpty) return const SizedBox.shrink();
 
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F7F8),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.functions_rounded, size: 14, color: Color(0xFF4B5563)),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Processed Formula',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.grey.shade700,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Builder(
-                        builder: (ctx) => InkWell(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            Clipboard.setData(ClipboardData(text: processedFormula));
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(content: Text('Formula copied'), duration: Duration(seconds: 1)),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(6),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Icon(Icons.copy_rounded, size: 13, color: Colors.grey.shade600),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SelectableText(
-                      processedFormula,
-                      style: const TextStyle(
-                        fontSize: 16.5,
-                        fontFamily: 'serif',
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        height: 1.35,
-                        letterSpacing: 0.3,
-                      ),
+            // Clean, clear LaTeX rendering WITHOUT heavy container box
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SelectableText(
+                    processedFormula,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontFamily: 'serif',
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                      letterSpacing: 0.5,
+                      height: 1.45,
                     ),
                   ),
-                ],
+                ),
               ),
             );
           } else {
@@ -96,7 +58,7 @@ class LatexMarkdownRenderer extends StatelessWidget {
       );
     }
 
-    return _buildMarkdown(context, content);
+    return _buildMarkdown(context, normalized);
   }
 
   Widget _buildMarkdown(BuildContext context, String markdownText) {

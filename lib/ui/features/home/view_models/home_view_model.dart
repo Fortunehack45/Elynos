@@ -94,6 +94,7 @@ class HomeViewModel extends ChangeNotifier {
 
   // --- Conversations Management ---
   Future<void> startNewConversation() async {
+    _activeTopTab = 0;
     if (_isPrivateMode) {
       _chatRepository.clearPrivateMessages();
       _messages = [];
@@ -101,25 +102,23 @@ class HomeViewModel extends ChangeNotifier {
       return;
     }
 
-    final newConv = Conversation(
-      id: 'conv_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'New Chat',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    await _chatRepository.saveConversation(newConv);
-    _activeConversationId = newConv.id;
+    _activeConversationId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
     _messages = [];
-    await loadConversations();
     notifyListeners();
   }
 
   Future<void> selectConversation(String id) async {
-    _activeConversationId = id;
-    _isPrivateMode = false;
-    _messages = await _chatRepository.getMessages(id, isPrivate: false);
-    notifyListeners();
+    try {
+      _activeConversationId = id;
+      _isPrivateMode = false;
+      _activeTopTab = 0; // CRITICAL: Always switch to Chat tab so past messages render immediately!
+      final loaded = await _chatRepository.getMessages(id, isPrivate: false);
+      _messages = List.from(loaded);
+    } catch (e) {
+      debugPrint('Error selecting conversation $id: $e');
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> deleteConversation(String id) async {

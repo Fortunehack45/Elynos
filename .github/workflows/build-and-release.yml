@@ -75,20 +75,20 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.2-release' }}
-          name: "Elynos AI v1.0.2 (Super Intelligent Update)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.3-release' }}
+          name: "Elynos AI v1.0.3 (Sovereign Intelligence & Math)"
+          make_latest: true
           body: |
-            ## 🚀 Elynos AI v1.0.2 - Super Intelligent Update
-            **Model**: Elynos 1 Axiom Dual-Engine Architecture
+            ## 🚀 Elynos AI v1.0.3 - Sovereign Intelligence & Math Architecture
+            **Model**: Elynos 1 Axiom Dual-Engine Framework (Offline Edge + Super Intelligence)
             
-            ### What's New in v1.0.2:
-            - **Super Intelligent Foundation Inference**: Fixed online AI bridge (removed paid query parameter, restored lightning-fast GPT-4-class answers with zero canned responses).
-            - **Seamless Multi-Turn Context**: Remembers conversation turns, resolves topic switches, and switches back to prior topics gracefully.
-            - **Self-Aware Intelligence**: Identifies model engine (**Elynos 1 Axiom**), specifications, and multimodal capabilities.
-            - **Instant Text Input Container Click**: Wrapped entire input container in responsive hit-testing so tapping anywhere instantly focuses keyboard and starts typing.
-            - **Autonomous Goal Milestone Runner**: Interactive checklist automatically progresses and ticks off milestones in sequence with haptics.
-            - **Unified Imagine & Build Streams**: Imagine and Build tabs now share the full interactive chat stream with synchronized smooth scrolling.
-            - **Connectors**: Marked as "Coming Soon in v1.1.0" with direct 1-tap code copy.
+            ### What's New in v1.0.3:
+            - **Multi-Perspective Heavy Mode**: Solves complex engineering queries (e.g. Scientific Calculator) through a 3-agent panel: Lead Architect (specifications), Implementation Specialist (complete runnable Flutter/Dart code with 1-tap copy), and Verification Auditor (invariants).
+            - **Seamless Multi-Turn Context Continuity**: Eradicated conversational amnesia. Follow-ups like *"the principles"* or *"continue"* accurately retain full context from prior turns.
+            - **Clean Container-Free LaTeX Math**: Rendered directly in-flow with clean serif typography and horizontal scroll support, removing ugly grey border boxes and formula labels.
+            - **Accurate Dynamic Thinking Timers**: Fixed false "Thought for 1s" pills on instant responses; deep reasoning duration is dynamically computed based on token density.
+            - **Resilient Local Database Storage**: Fixed past chats loading as empty by querying non-temporary messages and isolating row deserialization.
+            - **In-App Update Checker**: Added a direct "Check for Updates" tile in the navigation drawer linked to the GitHub release repository.
             
             ### Included Assets:
             - `app-release.apk`: Direct Android installation package.

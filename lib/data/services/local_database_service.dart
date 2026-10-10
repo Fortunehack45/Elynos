@@ -138,28 +138,44 @@ class LocalDatabaseService {
     final db = await database;
     final maps = await db.query(
       'messages',
-      where: 'conversationId = ? AND isTemporary = 0',
+      where: 'conversationId = ? AND (isTemporary = 0 OR isTemporary IS NULL)',
       orderBy: 'timestamp ASC',
     );
-    return maps.map((m) {
-      final map = Map<String, dynamic>.from(m);
-      if (map['goalMilestonesJson'] != null) {
+    final results = <ChatMessage>[];
+    for (final m in maps) {
+      try {
+        final map = Map<String, dynamic>.from(m);
+        if (map['goalMilestonesJson'] != null) {
+          try {
+            map['goalMilestones'] = jsonDecode(map['goalMilestonesJson'] as String);
+          } catch (_) {}
+        }
+        if (map['visualAuditJson'] != null) {
+          try {
+            map['visualAudit'] = jsonDecode(map['visualAuditJson'] as String);
+          } catch (_) {}
+        }
+        if (map['attachedFilesJson'] != null) {
+          try {
+            map['attachedFiles'] = jsonDecode(map['attachedFilesJson'] as String);
+          } catch (_) {}
+        }
+        results.add(ChatMessage.fromMap(map));
+      } catch (err) {
+        // Fallback reconstruction so a corrupted field never drops the entire chat
         try {
-          map['goalMilestones'] = jsonDecode(map['goalMilestonesJson'] as String);
+          results.add(ChatMessage(
+            id: m['id']?.toString() ?? 'msg_${DateTime.now().millisecondsSinceEpoch}',
+            conversationId: conversationId,
+            sender: m['sender']?.toString() ?? 'elynos',
+            text: m['text']?.toString() ?? '',
+            mode: IntelligenceMode.fast,
+            timestamp: DateTime.tryParse(m['timestamp']?.toString() ?? '') ?? DateTime.now(),
+          ));
         } catch (_) {}
       }
-      if (map['visualAuditJson'] != null) {
-        try {
-          map['visualAudit'] = jsonDecode(map['visualAuditJson'] as String);
-        } catch (_) {}
-      }
-      if (map['attachedFilesJson'] != null) {
-        try {
-          map['attachedFiles'] = jsonDecode(map['attachedFilesJson'] as String);
-        } catch (_) {}
-      }
-      return ChatMessage.fromMap(map);
-    }).toList();
+    }
+    return results;
   }
 
   Future<void> saveMessage(ChatMessage message) async {

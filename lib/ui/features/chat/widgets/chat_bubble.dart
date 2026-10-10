@@ -105,33 +105,11 @@ class _ChatBubbleState extends State<ChatBubble> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thinking Disclosure Pill (Grok: 💡 Thought for 1s >)
+          // Thinking Disclosure Pill (Only when genuine thinking is present!)
           if (widget.message.hasThinking)
             ThinkingDisclosureWidget(
               thinkingProcess: widget.message.thinkingProcess!,
-              durationSeconds: 1,
-            )
-          else if (!widget.message.id.startsWith('err_'))
-            const Padding(
-              padding: EdgeInsets.only(bottom: 6),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.lightbulb_outline_rounded, size: 15, color: Color(0xFF757575)),
-                  SizedBox(width: 5),
-                  Text(
-                    'Thought for 1s',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF757575),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  SizedBox(width: 3),
-                  Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF757575)),
-                ],
-              ),
+              durationSeconds: (widget.message.thinkingProcess!.length / 150).clamp(2, 10).toInt(),
             ),
 
           // Main Markdown Response Text
