@@ -1,4 +1,5 @@
 import 'intelligence_mode.dart';
+export 'intelligence_mode.dart';
 
 class GoalMilestone {
   final String id;

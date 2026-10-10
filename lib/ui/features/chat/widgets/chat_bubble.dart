@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../domain/models/chat_message.dart';
+import '../../../../domain/models/intelligence_mode.dart';
 import '../../../core/theme/elynos_theme.dart';
 import '../../../../data/services/image_generation_service.dart';
 import 'latex_markdown_renderer.dart';
