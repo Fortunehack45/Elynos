@@ -328,7 +328,7 @@ class _GoalMilestonesCardState extends State<GoalMilestonesCard> {
                                     ? Colors.white70
                                     : isCurrentActive
                                         ? Colors.white
-                                        : Colors.white90,
+                                        : Colors.white,
                                 decoration: item.isCompleted ? TextDecoration.lineThrough : null,
                               ),
                             ),
