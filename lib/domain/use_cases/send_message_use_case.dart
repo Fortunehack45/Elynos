@@ -49,7 +49,10 @@ class SendMessageUseCase {
     final connectivity = await Connectivity().checkConnectivity();
     final isOnline = !connectivity.contains(ConnectivityResult.none);
 
-    // 4. Generate on-device response
+    // 4. Fetch conversation history for multi-turn context
+    final history = await _chatRepository.getMessages(conversationId, isPrivate: isPrivate);
+
+    // 5. Generate response with full conversation context
     final aiResult = await _offlineAiService.generateResponse(
       prompt: prompt,
       mode: mode,
@@ -57,6 +60,7 @@ class SendMessageUseCase {
       conversationId: isPrivate ? null : conversationId,
       isOnline: isOnline,
       attachedFiles: attachedFiles,
+      conversationHistory: history,
     );
 
     // 5. Create assistant message

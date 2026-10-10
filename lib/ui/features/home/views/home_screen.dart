@@ -147,18 +147,22 @@ class _HomeScreenContentState extends State<_HomeScreenContent> {
               ),
             ),
 
-            // Bottom Input Bar (docks directly above soft keyboard)
-            if (viewModel.activeTopTab == 0)
-              ElyonsBottomBar(
-                currentMode: viewModel.currentMode,
-                onOpenModeSheet: () => _openModeSheet(context, viewModel),
-                onSend: (text, {attachedFiles = const []}) {
-                  viewModel.sendMessage(text, attachedFiles: attachedFiles);
-                  _scrollToBottom();
-                },
-                isPrivateMode: viewModel.isPrivateMode,
-                isLoading: viewModel.isLoading,
-              ),
+            // Bottom Input Bar (docks directly above soft keyboard across all tabs)
+            ElyonsBottomBar(
+              hintText: viewModel.activeTopTab == 1
+                  ? 'Describe an image to synthesize...'
+                  : viewModel.activeTopTab == 2
+                      ? 'Describe an app or component to build...'
+                      : 'Ask anything',
+              currentMode: viewModel.currentMode,
+              onOpenModeSheet: () => _openModeSheet(context, viewModel),
+              onSend: (text, {attachedFiles = const []}) {
+                viewModel.sendMessage(text, attachedFiles: attachedFiles);
+                _scrollToBottom();
+              },
+              isPrivateMode: viewModel.isPrivateMode,
+              isLoading: viewModel.isLoading,
+            ),
           ],
         ),
       ),

@@ -45,9 +45,18 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        release {
+            storeFile file('elynos_keystore.jks')
+            storePassword 'elynos2026'
+            keyAlias 'elynos'
+            keyPassword 'elynos2026'
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
         }

@@ -138,7 +138,14 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> sendMessage(String text, {List<String> attachedFiles = const []}) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty && attachedFiles.isEmpty) return;
-    final promptText = trimmed.isEmpty ? 'Inspect and process attached file(s)' : trimmed;
+    String promptText = trimmed.isEmpty ? 'Inspect and process attached file(s)' : trimmed;
+
+    if (_activeTopTab == 1) {
+      final l = promptText.toLowerCase();
+      if (!l.contains('generate image') && !l.contains('draw') && !l.contains('picture of') && !l.contains('paint')) {
+        promptText = 'Generate image of $promptText';
+      }
+    }
 
     final convId = _isPrivateMode
         ? 'private_session'

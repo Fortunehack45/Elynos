@@ -1,289 +1,224 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../data/services/connectors/github_connector_service.dart';
-import '../../../../data/services/connectors/workspace_connector_service.dart';
-import '../../../../data/services/connectors/spotify_slack_connector_service.dart';
 import '../../../core/theme/elynos_theme.dart';
 
-class ConnectorsScreen extends StatefulWidget {
+class ConnectorsScreen extends StatelessWidget {
   const ConnectorsScreen({super.key});
 
   @override
-  State<ConnectorsScreen> createState() => _ConnectorsScreenState();
-}
-
-class _ConnectorsScreenState extends State<ConnectorsScreen> {
-  final _githubService = GitHubConnectorService();
-  final _workspaceService = GoogleWorkspaceConnectorService();
-  final _slackService = SlackConnectorService();
-  final _spotifyService = SpotifyConnectorService();
-
-  final _githubTokenController = TextEditingController();
-  final _slackWebhookController = TextEditingController();
-
-  bool _isOnline = false;
-  bool _githubConnected = false;
-  bool _workspaceConnected = false;
-  bool _slackConnected = false;
-  bool _spotifyConnected = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkStatus();
-  }
-
-  Future<void> _checkStatus() async {
-    final online = await _githubService.isOnline();
-    final hasGithub = await _githubService.hasToken();
-    final hasWorkspace = await _workspaceService.hasToken();
-    final slackHook = await _slackService.getWebhook();
-    final spotifyTok = await _spotifyService.getToken();
-
-    setState(() {
-      _isOnline = online;
-      _githubConnected = hasGithub;
-      _workspaceConnected = hasWorkspace;
-      _slackConnected = slackHook != null && slackHook.isNotEmpty;
-      _spotifyConnected = spotifyTok != null && spotifyTok.isNotEmpty;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final connectors = [
+      {
+        'name': 'GitHub Connector',
+        'desc': 'Autonomous git pushes, repository branching, and issue triage.',
+        'icon': Icons.code_rounded,
+        'badge': 'Coming Soon',
+      },
+      {
+        'name': 'Google Workspace',
+        'desc': 'Sync documents, spreadsheet analysis, and Drive file pipelines.',
+        'icon': Icons.folder_shared_rounded,
+        'badge': 'Coming Soon',
+      },
+      {
+        'name': 'Slack Integration',
+        'desc': 'Real-time agent alerting, team reports, and interactive bots.',
+        'icon': Icons.chat_bubble_outline_rounded,
+        'badge': 'Coming Soon',
+      },
+      {
+        'name': 'Spotify Audio',
+        'desc': 'Intelligent focus soundscapes and hands-free playlist control.',
+        'icon': Icons.music_note_rounded,
+        'badge': 'Coming Soon',
+      },
+    ];
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: ElyonsColors.background,
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('App Connectors', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Connectors',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.3,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Network Connectivity Banner
+            // Hero Card
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: _isOnline ? const Color(0xFF13281E) : const Color(0xFF281E13),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _isOnline ? Colors.greenAccent.withOpacity(0.5) : Colors.amberAccent.withOpacity(0.5),
-                ),
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Icon(
-                    _isOnline ? Icons.wifi_rounded : Icons.wifi_off_rounded,
-                    color: _isOnline ? Colors.greenAccent : Colors.amberAccent,
-                    size: 22,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'COMING SOON IN V1.1.0',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _isOnline ? 'Internet Active' : 'Offline Mode Active',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: _isOnline ? Colors.greenAccent : Colors.amberAccent,
-                          ),
-                        ),
-                        Text(
-                          _isOnline
-                              ? 'App connectors are ready to sync when requested.'
-                              : 'Connectors require mobile data/Wi-Fi to execute tasks.',
-                          style: const TextStyle(fontSize: 12, color: ElyonsColors.textSecondary),
-                        ),
-                      ],
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Sovereign App Connectors',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Connect Elynos to your favorite apps with zero-trust local authentication. Currently undergoing security certification.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6B7280),
+                      height: 1.4,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
 
+            const SizedBox(height: 24),
             const Text(
-              'Available Integrations',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              'UPCOMING INTEGRATIONS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF9CA3AF),
+                letterSpacing: 0.6,
+              ),
             ),
             const SizedBox(height: 12),
 
-            // GitHub Connector Card
-            _buildConnectorCard(
-              icon: Icons.code_rounded,
-              title: 'GitHub',
-              subtitle: 'Push generated websites/apps, create repos & PRs',
-              isConnected: _githubConnected,
-              onConfigure: () => _showTokenDialog('GitHub Personal Access Token', _githubTokenController, (token) async {
-                await _githubService.saveToken(token);
-                _checkStatus();
-              }),
-            ),
-
-            // Google Workspace Card
-            _buildConnectorCard(
-              icon: Icons.work_outline_rounded,
-              title: 'Google Workspace',
-              subtitle: 'Google Calendar scheduling, Gmail drafts & Drive sync',
-              isConnected: _workspaceConnected,
-              onConfigure: () => _showWorkspaceDialog(),
-            ),
-
-            // Slack Card
-            _buildConnectorCard(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: 'Slack',
-              subtitle: 'Dispatch notifications and summary reports to channels',
-              isConnected: _slackConnected,
-              onConfigure: () => _showTokenDialog('Slack Webhook URL', _slackWebhookController, (hook) async {
-                await _slackService.saveWebhook(hook);
-                _checkStatus();
-              }),
-            ),
-
-            // Spotify Card
-            _buildConnectorCard(
-              icon: Icons.music_note_rounded,
-              title: 'Spotify',
-              subtitle: 'Play deep focus & study coding playlists in Study Mode',
-              isConnected: _spotifyConnected,
-              onConfigure: () async {
-                await _spotifyService.saveToken('spotify_active');
-                _checkStatus();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConnectorCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isConnected,
-    required VoidCallback onConfigure,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141923),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ElyonsColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2533),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: ElyonsColors.accent, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            ...connectors.map((c) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Row(
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
-                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: isConnected ? Colors.green.withOpacity(0.2) : const Color(0xFF262C36),
-                        borderRadius: BorderRadius.circular(6),
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        isConnected ? 'Connected' : 'Not Connected',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: isConnected ? Colors.greenAccent : ElyonsColors.textMuted,
-                        ),
+                      child: Icon(c['icon'] as IconData, color: Colors.black, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                c['name'] as String,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  c['badge'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            c['desc'] as String,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: ElyonsColors.textSecondary)),
-              ],
-            ),
-          ),
-          OutlinedButton(
-            onPressed: onConfigure,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ElyonsColors.accent,
-              side: const BorderSide(color: ElyonsColors.border),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(isConnected ? 'Edit' : 'Connect'),
-          ),
-        ],
-      ),
-    );
-  }
+              );
+            }),
 
-  void _showTokenDialog(String title, TextEditingController controller, Function(String) onSave) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        title: Text(title, style: const TextStyle(fontSize: 16)),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Paste token / webhook here',
-            hintStyle: TextStyle(color: ElyonsColors.textMuted, fontSize: 13),
-          ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 46,
+              child: ElevatedButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('You will be notified when Connectors launch in v1.1.0!'),
+                      backgroundColor: Colors.black,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Notify Me On Release',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              onSave(controller.text.trim());
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.white),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showWorkspaceDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        title: const Text('Google Workspace Access'),
-        content: const Text(
-          'Connect your Google Workspace accounts locally on this device.\n\n'
-          'No remote database or servers have access to your credentials.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              await _workspaceService.saveToken('workspace_active');
-              _checkStatus();
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: ElyonsColors.accent, foregroundColor: Colors.white),
-            child: const Text('Connect Workspace'),
-          ),
-        ],
       ),
     );
   }

@@ -14,7 +14,144 @@ class MathEvaluationResult {
   });
 }
 
+class AlgebraicSolution {
+  final String targetVariable;
+  final String originalEquation;
+  final String resultLatex;
+  final String textResult;
+  final List<String> steps;
+
+  AlgebraicSolution({
+    required this.targetVariable,
+    required this.originalEquation,
+    required this.resultLatex,
+    required this.textResult,
+    required this.steps,
+  });
+}
+
 class MathFormulaProcessor {
+  /// Solves symbolic and algebraic equations like "x^2 + y^2 = X5", "2x + 4 = 10", etc.
+  static AlgebraicSolution? solveAlgebraicEquation(String input) {
+    if (!input.contains('=')) return null;
+
+    // Detect target variable
+    String targetVar = 'X';
+    final varMatch = RegExp(r'(?:value of|solve for|find|isolate)\s+([a-zA-Z])', caseSensitive: false).firstMatch(input);
+    if (varMatch != null) {
+      targetVar = varMatch.group(1)!;
+    }
+
+    // Strip follow-up text in parenthesis or polite requests
+    String s = input.replaceAll(RegExp(r'\(.*?\)'), '');
+    s = s.replaceAll(RegExp(r'\bplease\b.*', caseSensitive: false), '').trim();
+
+    // Isolate equation part if preceded by "if", "when", or "given"
+    String eqPart = s;
+    final ifMatch = RegExp(r'\b(?:if|when|given)\s+([^?]+)', caseSensitive: false).firstMatch(s);
+    if (ifMatch != null && ifMatch.group(1) != null && ifMatch.group(1)!.contains('=')) {
+      eqPart = ifMatch.group(1)!.trim();
+    }
+
+    // Strip common question prefixes
+    eqPart = eqPart.replaceAll(RegExp(r'^(?:what\s+is\s+(?:the\s+)?value\s+of\s+[a-zA-Z]\s*:?|solve\s+for\s+[a-zA-Z]\s*:?|find\s+[a-zA-Z]\s*:?)', caseSensitive: false), '').trim();
+    eqPart = eqPart.replaceAll(RegExp(r'[?.!\s]+$'), '').trim();
+
+    final parts = eqPart.split('=');
+    if (parts.length != 2) return null;
+
+    final left = parts[0].trim();
+    final right = parts[1].trim();
+
+    // Normalize target variable representations
+    // Case 1: Expression = k * Var or Var * k or VarK (e.g., x^2 + y^2 = X5 or 5X or X*5)
+    final vPattern = RegExp(
+      '^(\\d+(?:\\.\\d+)?)\\s*\\*?\\s*${RegExp.escape(targetVar)}\$|^${RegExp.escape(targetVar)}\\s*\\*?\\s*(\\d+(?:\\.\\d+)?)\$',
+      caseSensitive: false,
+    );
+
+    // Check right side for k * targetVar
+    var sideMatch = vPattern.firstMatch(right);
+    bool targetOnRight = true;
+    if (sideMatch == null) {
+      // Check left side
+      sideMatch = vPattern.firstMatch(left);
+      targetOnRight = false;
+    }
+
+    if (sideMatch != null) {
+      final coeffStr = sideMatch.group(1) ?? sideMatch.group(2) ?? '1';
+      final coeff = double.tryParse(coeffStr) ?? 1.0;
+      final exprSide = targetOnRight ? left : right;
+
+      final coeffDisplay = _formatNumber(coeff);
+      final cleanExpr = exprSide.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+      String resultLatex;
+      String textResult;
+      if (coeff == 1.0) {
+        resultLatex = '$targetVar = $cleanExpr';
+        textResult = '$targetVar = $cleanExpr';
+      } else {
+        resultLatex = '$targetVar = \\frac{$cleanExpr}{$coeffDisplay}';
+        textResult = '$targetVar = ($cleanExpr) / $coeffDisplay';
+      }
+
+      final steps = [
+        'Given equation: $left = $right',
+        if (right.toLowerCase().contains('${targetVar.toLowerCase()}5') || right.toLowerCase().contains('5${targetVar.toLowerCase()}'))
+          'Interpret "${targetOnRight ? right : left}" as product of coefficient $coeffDisplay and variable $targetVar ($coeffDisplay · $targetVar)',
+        'Isolate $targetVar by dividing both sides of the equation by $coeffDisplay:',
+        '   ($cleanExpr) / $coeffDisplay = ($coeffDisplay · $targetVar) / $coeffDisplay',
+        'Simplify to obtain the exact value of $targetVar:',
+        '   $textResult',
+      ];
+
+      return AlgebraicSolution(
+        targetVariable: targetVar,
+        originalEquation: '$left = $right',
+        resultLatex: resultLatex,
+        textResult: textResult,
+        steps: steps,
+      );
+    }
+
+    // Case 2: Simple linear equation in one variable, e.g. "2x + 4 = 10" or "X - 5 = 15"
+    final linearPattern = RegExp(
+      r'^(-?\d*(?:\.\d+)?)\s*\*?\s*' + RegExp.escape(targetVar) + r'\s*([+-]\s*\d+(?:\.\d+)?)?\s*$',
+      caseSensitive: false,
+    );
+    final linMatch = linearPattern.firstMatch(left);
+    final constRight = double.tryParse(right);
+    if (linMatch != null && constRight != null) {
+      String aStr = (linMatch.group(1) ?? '').replaceAll(RegExp(r'\s+'), '');
+      if (aStr.isEmpty || aStr == '+') aStr = '1';
+      if (aStr == '-') aStr = '-1';
+      final a = double.tryParse(aStr) ?? 1.0;
+
+      String bStr = (linMatch.group(2) ?? '').replaceAll(RegExp(r'\s+'), '');
+      final b = bStr.isEmpty ? 0.0 : (double.tryParse(bStr) ?? 0.0);
+
+      if (a != 0.0) {
+        final sol = (constRight - b) / a;
+        final solStr = _formatNumber(sol);
+        return AlgebraicSolution(
+          targetVariable: targetVar,
+          originalEquation: '$left = $right',
+          resultLatex: '$targetVar = $solStr',
+          textResult: '$targetVar = $solStr',
+          steps: [
+            'Given linear equation: $left = $right',
+            'Subtract constant term (${_formatNumber(b)}) from both sides: ${_formatNumber(a)}$targetVar = ${_formatNumber(constRight - b)}',
+            'Divide both sides by ${_formatNumber(a)}: $targetVar = $solStr',
+          ],
+        );
+      }
+    }
+
+    return null;
+  }
+
   /// Evaluates an arithmetic expression or math query if possible.
   /// Handles "what is 1+1", "25 * 4 + 15", "sqrt(144)", "15% of 200", etc.
   static MathEvaluationResult? evaluateMath(String input) {

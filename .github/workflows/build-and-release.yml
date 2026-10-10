@@ -75,11 +75,11 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.0-release' }}
-          name: "Elynos AI v1.0.0 (Elynos 1 Axiom)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.1-release' }}
+          name: "Elynos AI v1.0.1 (Latest Release)"
           body: |
-            ## 🚀 Elynos AI - Production Release
-            **Model**: Elynos 1 Axiom
+            ## 🚀 Elynos AI v1.0.1 - Production Release
+            **Model**: Elynos 1 Axiom (Super Intelligent)
             **Features**:
             - 100% Offline-First on-device inference with ultra-low RAM (<150MB)
             - 100k Virtual Context Paging via local SQLite

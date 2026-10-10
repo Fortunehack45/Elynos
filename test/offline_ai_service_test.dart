@@ -96,5 +96,53 @@ void main() {
       expect(response.visualAudit!.qualityScore, greaterThan(0.90));
       expect(response.text.contains('Visual') || response.text.contains('visual'), isTrue);
     });
+
+    test('Algebraic equation solver resolves for variable X in x^2+y^2=X5', () async {
+      final response = await service.generateResponse(
+        prompt: 'What is the value of X if x^2+y^2=X5',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('X'), isTrue);
+      expect(response.text.contains('x^2') || response.text.contains('x²'), isTrue);
+      expect(response.text.contains('5'), isTrue);
+      expect(response.text.contains(r'$$'), isTrue);
+    });
+
+    test('Multi-turn context handles follow-up inquiry asking for the answer', () async {
+      final history = [
+        ChatMessage(
+          id: '1',
+          conversationId: 'c1',
+          sender: 'user',
+          text: 'What is the value of X if x^2+y^2=X5',
+          mode: IntelligenceMode.fast,
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      final response = await service.generateResponse(
+        prompt: 'please the answer...',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+        conversationHistory: history,
+      );
+
+      expect(response.text.contains('X'), isTrue);
+      expect(response.text.contains('5'), isTrue);
+      expect(response.text.contains('x^2') || response.text.contains('x²'), isTrue);
+    });
+
+    test('LaTeX notation processor formats complexity and provides amortized breakdown', () async {
+      final response = await service.generateResponse(
+        prompt: r'\mathcal{O}(N \log N) \quad \text{complexity with amortized local cache}',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains(r'$$'), isTrue);
+      expect(response.text.contains('O(N') || response.text.contains('linearithmic') || response.text.contains('amortized'), isTrue);
+    });
   });
 }

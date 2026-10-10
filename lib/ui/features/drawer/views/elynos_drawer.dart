@@ -115,6 +115,18 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                       );
                     },
                   ),
+                  _buildMenuItem(
+                    icon: Icons.hub_outlined,
+                    title: 'Connectors',
+                    badge: 'Soon',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ConnectorsScreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -341,6 +353,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    String? badge,
   }) {
     return ListTile(
       dense: true,
@@ -350,6 +363,23 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
         title,
         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: Colors.black),
       ),
+      trailing: badge != null
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            )
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }

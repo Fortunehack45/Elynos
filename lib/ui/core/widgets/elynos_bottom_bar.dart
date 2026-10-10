@@ -10,6 +10,7 @@ class ElyonsBottomBar extends StatefulWidget {
   final Function(String, {List<String> attachedFiles}) onSend;
   final bool isPrivateMode;
   final bool isLoading;
+  final String? hintText;
 
   const ElyonsBottomBar({
     super.key,
@@ -18,6 +19,7 @@ class ElyonsBottomBar extends StatefulWidget {
     required this.onSend,
     required this.isPrivateMode,
     required this.isLoading,
+    this.hintText,
   });
 
   @override
@@ -261,9 +263,9 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
               cursorColor: Colors.black,
               maxLines: 5,
               minLines: 1,
-              decoration: const InputDecoration(
-                hintText: 'Ask anything',
-                hintStyle: TextStyle(
+              decoration: InputDecoration(
+                hintText: widget.hintText ?? 'Ask anything',
+                hintStyle: const TextStyle(
                   color: Color(0xFF8E8E93),
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -271,7 +273,7 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
                 ),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.only(top: 2, bottom: 8),
+                contentPadding: const EdgeInsets.only(top: 2, bottom: 8),
               ),
             ),
 
