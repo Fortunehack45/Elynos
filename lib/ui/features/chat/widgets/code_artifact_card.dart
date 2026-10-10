@@ -129,15 +129,18 @@ class _CodeArtifactCardState extends State<CodeArtifactCard> {
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _isPushing ? null : _handlePushToGitHub,
-                  icon: _isPushing
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                        )
-                      : const Icon(Icons.cloud_upload_outlined, size: 16),
-                  label: Text(_isPushing ? 'Pushing...' : 'Push to GitHub'),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Clipboard.setData(ClipboardData(text: widget.code));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Code artifact copied to clipboard!'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: const Text('Copy Code'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ElyonsColors.accent,
                     foregroundColor: Colors.black,

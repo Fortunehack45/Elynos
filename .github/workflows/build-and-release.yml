@@ -75,18 +75,20 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.1-release' }}
-          name: "Elynos AI v1.0.1 (Latest Release)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.2-release' }}
+          name: "Elynos AI v1.0.2 (Super Intelligent Update)"
           body: |
-            ## 🚀 Elynos AI v1.0.1 - Production Release
-            **Model**: Elynos 1 Axiom (Super Intelligent)
-            **Features**:
-            - 100% Offline-First on-device inference with ultra-low RAM (<150MB)
-            - 100k Virtual Context Paging via local SQLite
-            - On-Device Low-RAM Training & Episodic Memory
-            - Grok-Inspired Dark Mode UI/UX
-            - Multi-App Connectors (GitHub, Google Workspace, Slack, Spotify)
-            - Modes: Fast, Expert (Deep Think), Build (Agentic), Study (LaTeX), Goal, Imagine
+            ## 🚀 Elynos AI v1.0.2 - Super Intelligent Update
+            **Model**: Elynos 1 Axiom Dual-Engine Architecture
+            
+            ### What's New in v1.0.2:
+            - **Super Intelligent Foundation Inference**: Fixed online AI bridge (removed paid query parameter, restored lightning-fast GPT-4-class answers with zero canned responses).
+            - **Seamless Multi-Turn Context**: Remembers conversation turns, resolves topic switches, and switches back to prior topics gracefully.
+            - **Self-Aware Intelligence**: Identifies model engine (**Elynos 1 Axiom**), specifications, and multimodal capabilities.
+            - **Instant Text Input Container Click**: Wrapped entire input container in responsive hit-testing so tapping anywhere instantly focuses keyboard and starts typing.
+            - **Autonomous Goal Milestone Runner**: Interactive checklist automatically progresses and ticks off milestones in sequence with haptics.
+            - **Unified Imagine & Build Streams**: Imagine and Build tabs now share the full interactive chat stream with synchronized smooth scrolling.
+            - **Connectors**: Marked as "Coming Soon in v1.1.0" with direct 1-tap code copy.
             
             ### Included Assets:
             - `app-release.apk`: Direct Android installation package.

@@ -45,9 +45,16 @@ class SendMessageUseCase {
     // 2. Fetch active on-device memories (if not in private mode)
     final memories = isPrivate ? <TrainingMemory>[] : await _trainingRepository.getMemories();
 
-    // 3. Check connectivity state
-    final connectivity = await Connectivity().checkConnectivity();
-    final isOnline = !connectivity.contains(ConnectivityResult.none);
+    // 3. Check connectivity state with safe fallback
+    bool isOnline = !isPrivate;
+    try {
+      final connectivity = await Connectivity().checkConnectivity();
+      if (connectivity.contains(ConnectivityResult.none) && connectivity.length == 1) {
+        isOnline = false;
+      }
+    } catch (_) {
+      isOnline = !isPrivate;
+    }
 
     // 4. Fetch conversation history for multi-turn context
     final history = await _chatRepository.getMessages(conversationId, isPrivate: isPrivate);

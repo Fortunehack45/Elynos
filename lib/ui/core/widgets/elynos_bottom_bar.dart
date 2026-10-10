@@ -28,6 +28,7 @@ class ElyonsBottomBar extends StatefulWidget {
 
 class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final List<String> _attachedFilePaths = [];
   bool _hasText = false;
 
@@ -47,6 +48,7 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -195,87 +197,93 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F7F8),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
-        ),
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Attached Files Chips
-            if (_attachedFilePaths.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(
-                  height: 32,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _attachedFilePaths.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
-                    itemBuilder: (context, index) {
-                      final path = _attachedFilePaths[index];
-                      final name = path.split('/').last.split(r'\').last;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEAEAEB),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.attach_file, size: 14, color: Colors.black87),
-                            const SizedBox(width: 4),
-                            Text(
-                              name,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black87),
-                            ),
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _attachedFilePaths.removeAt(index);
-                                });
-                              },
-                              child: const Icon(Icons.close, size: 14, color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          _focusNode.requestFocus();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F7F8),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+          ),
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Attached Files Chips
+              if (_attachedFilePaths.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SizedBox(
+                    height: 32,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _attachedFilePaths.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 6),
+                      itemBuilder: (context, index) {
+                        final path = _attachedFilePaths[index];
+                        final name = path.split('/').last.split(r'\').last;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEAEAEB),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.attach_file, size: 14, color: Colors.black87),
+                              const SizedBox(width: 4),
+                              Text(
+                                name,
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black87),
+                              ),
+                              const SizedBox(width: 4),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _attachedFilePaths.removeAt(index);
+                                  });
+                                },
+                                child: const Icon(Icons.close, size: 14, color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-            // Top Input Field (Grok "Ask anything")
-            TextField(
-              controller: _controller,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-              ),
-              cursorColor: Colors.black,
-              maxLines: 5,
-              minLines: 1,
-              decoration: InputDecoration(
-                hintText: widget.hintText ?? 'Ask anything',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF8E8E93),
+              // Top Input Field (Grok "Ask anything")
+              TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                style: const TextStyle(
+                  color: Colors.black,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.2,
                 ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.only(top: 2, bottom: 8),
+                cursorColor: Colors.black,
+                maxLines: 5,
+                minLines: 1,
+                decoration: InputDecoration(
+                  hintText: widget.hintText ?? 'Ask anything',
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF8E8E93),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.only(top: 2, bottom: 8),
+                ),
               ),
-            ),
 
             // Bottom Action Row (Grok 1:1 match)
             Row(
@@ -420,7 +428,8 @@ class _ElyonsBottomBarState extends State<ElyonsBottomBar> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   String _getModeLabel(IntelligenceMode mode) {

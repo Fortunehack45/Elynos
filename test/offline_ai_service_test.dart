@@ -145,5 +145,50 @@ void main() {
       expect(response.text.contains(r'$$'), isTrue);
       expect(response.text.contains('O(N') || response.text.contains('linearithmic') || response.text.contains('amortized'), isTrue);
     });
+
+    test('Model identity query identifies as Elynos 1 Axiom', () async {
+      final response = await service.generateResponse(
+        prompt: 'which AI model are you on',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('Elynos 1 Axiom'), isTrue);
+      expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
+    });
+
+    test('Software company naming query generates creative branding suggestions', () async {
+      final response = await service.generateResponse(
+        prompt: 'give me a name idea for a software developer company',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('PixelForge') || response.text.contains('BitCraft'), isTrue);
+      expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
+    });
+
+    test('Multi-turn follow-up clarifies model identity without canned boilerplate', () async {
+      final history = [
+        ChatMessage(
+          id: '1',
+          conversationId: 'c1',
+          sender: 'user',
+          text: 'so which AI model are you on',
+          mode: IntelligenceMode.fast,
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      final response = await service.generateResponse(
+        prompt: 'I mean which Elynos model',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+        conversationHistory: history,
+      );
+
+      expect(response.text.contains('Elynos 1 Axiom'), isTrue);
+      expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
+    });
   });
 }

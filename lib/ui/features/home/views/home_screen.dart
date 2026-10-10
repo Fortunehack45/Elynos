@@ -112,7 +112,7 @@ class _HomeScreenContentState extends State<_HomeScreenContent> {
                   _buildBody(context, viewModel),
 
                   // Grok Scroll-to-Bottom Circular Button
-                  if (_showScrollToBottom && viewModel.activeTopTab == 0)
+                  if (_showScrollToBottom)
                     Positioned(
                       right: 16,
                       bottom: 12,
@@ -172,9 +172,9 @@ class _HomeScreenContentState extends State<_HomeScreenContent> {
   Widget _buildBody(BuildContext context, HomeViewModel viewModel) {
     switch (viewModel.activeTopTab) {
       case 1:
-        return const ImagineView();
+        return ImagineView(scrollController: _scrollController);
       case 2:
-        return const BuildModeView();
+        return BuildModeView(scrollController: _scrollController);
       case 0:
       default:
         return _buildChatBody(context, viewModel);

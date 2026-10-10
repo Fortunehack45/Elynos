@@ -7,37 +7,25 @@ import '../../../../domain/models/intelligence_mode.dart';
 import '../../../core/theme/elynos_theme.dart';
 
 class BuildModeView extends StatelessWidget {
-  const BuildModeView({super.key});
+  final ScrollController? scrollController;
+  const BuildModeView({super.key, this.scrollController});
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
 
-    // Messages relevant to Build stream
-    final buildMessages = viewModel.messages.where((m) {
-      if (m.codeArtifact != null) return true;
-      if (m.mode == IntelligenceMode.build) return true;
-      final textLower = m.text.toLowerCase();
-      return textLower.contains('build') ||
-          textLower.contains('code') ||
-          textLower.contains('component') ||
-          textLower.contains('widget') ||
-          textLower.contains('calculator') ||
-          textLower.contains('portfolio') ||
-          textLower.contains('app');
-    }).toList();
-
-    if (buildMessages.isEmpty) {
+    if (viewModel.messages.isEmpty) {
       return _buildEmptyState(context, viewModel);
     }
 
-    final totalCount = buildMessages.length + (viewModel.isLoading ? 1 : 0);
+    final totalCount = viewModel.messages.length + (viewModel.isLoading ? 1 : 0);
 
     return ListView.builder(
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: totalCount,
       itemBuilder: (context, index) {
-        if (index == buildMessages.length && viewModel.isLoading) {
+        if (index == viewModel.messages.length && viewModel.isLoading) {
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: Row(
@@ -67,7 +55,7 @@ class BuildModeView extends StatelessWidget {
           );
         }
 
-        final message = buildMessages[index];
+        final message = viewModel.messages[index];
         return ChatBubble(
           message: message,
           onRegenerate: () {

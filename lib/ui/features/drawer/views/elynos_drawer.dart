@@ -118,7 +118,7 @@ class _ElyonsDrawerState extends State<ElyonsDrawer> {
                   _buildMenuItem(
                     icon: Icons.hub_outlined,
                     title: 'Connectors',
-                    badge: 'Soon',
+                    badge: 'Coming Soon',
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(

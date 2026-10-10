@@ -6,34 +6,25 @@ import '../../chat/widgets/chat_bubble.dart';
 import '../../../core/theme/elynos_theme.dart';
 
 class ImagineView extends StatelessWidget {
-  const ImagineView({super.key});
+  final ScrollController? scrollController;
+  const ImagineView({super.key, this.scrollController});
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
 
-    // Messages relevant to Imagine stream
-    final imageMessages = viewModel.messages.where((m) {
-      if (m.imageUrl != null) return true;
-      final textLower = m.text.toLowerCase();
-      return textLower.contains('image') ||
-          textLower.contains('draw') ||
-          textLower.contains('picture') ||
-          textLower.contains('paint') ||
-          textLower.contains('synthesize');
-    }).toList();
-
-    if (imageMessages.isEmpty) {
+    if (viewModel.messages.isEmpty) {
       return _buildImagineEmptyState(context, viewModel);
     }
 
-    final totalCount = imageMessages.length + (viewModel.isLoading ? 1 : 0);
+    final totalCount = viewModel.messages.length + (viewModel.isLoading ? 1 : 0);
 
     return ListView.builder(
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: totalCount,
       itemBuilder: (context, index) {
-        if (index == imageMessages.length && viewModel.isLoading) {
+        if (index == viewModel.messages.length && viewModel.isLoading) {
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: Row(
@@ -63,7 +54,7 @@ class ImagineView extends StatelessWidget {
           );
         }
 
-        final message = imageMessages[index];
+        final message = viewModel.messages[index];
         return ChatBubble(
           message: message,
           onRegenerate: () {

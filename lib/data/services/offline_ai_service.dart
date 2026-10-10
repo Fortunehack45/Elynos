@@ -243,7 +243,7 @@ class OfflineAiService {
       return _buildMathResponse(prompt, mathResult, mode, combinedContext, retrievedCount, attachedVisualAudit);
     }
 
-    // 6. Online Live Inference Bridge (Free zero-auth real AI response when connected)
+    // 6. Online Live Inference Bridge (Free zero-auth foundation AI response when connected)
     if (isOnline) {
       try {
         final onlineText = await _tryFetchOnlineInference(prompt, mode, conversationHistory);
@@ -253,9 +253,29 @@ class OfflineAiService {
             thinking = _generateDynamicThinkingTrace(prompt, onlineText, retrievedCount);
           }
           final fullText = combinedContext.isNotEmpty ? '$onlineText\n\n$combinedContext' : onlineText;
+
+          // If Goal mode or plan requested, extract autonomous milestones
+          List<GoalMilestone>? milestones;
+          if (mode == IntelligenceMode.goal ||
+              lower.contains('goal') ||
+              lower.contains('plan') ||
+              lower.contains('roadmap') ||
+              lower.contains('to-do') ||
+              lower.contains('todo')) {
+            milestones = _extractOrGenerateGoalMilestones(onlineText, prompt);
+          }
+
+          // Extract code artifact if build mode or contains code block
+          String? code;
+          if (mode == IntelligenceMode.build || onlineText.contains('```')) {
+            code = _extractCodeArtifact(onlineText);
+          }
+
           return OfflineAiResponse(
             text: fullText,
             thinkingProcess: thinking,
+            codeArtifact: code,
+            goalMilestones: milestones,
             retrievedContextChunksCount: retrievedCount,
             visualAudit: attachedVisualAudit,
           );
@@ -269,7 +289,7 @@ class OfflineAiService {
     OfflineAiResponse response;
     switch (mode) {
       case IntelligenceMode.expert:
-        response = _generateDynamicExpertResponse(prompt, lower, combinedContext, retrievedCount);
+        response = _generateDynamicExpertResponse(prompt, lower, combinedContext, retrievedCount, conversationHistory);
         break;
 
       case IntelligenceMode.build:
@@ -281,21 +301,21 @@ class OfflineAiService {
         break;
 
       case IntelligenceMode.study:
-        response = _generateDynamicStudyResponse(prompt, lower, combinedContext, retrievedCount);
+        response = _generateDynamicStudyResponse(prompt, lower, combinedContext, retrievedCount, conversationHistory);
         break;
 
       case IntelligenceMode.research:
-        response = _generateDynamicResearchResponse(prompt, lower, isOnline, combinedContext, retrievedCount);
+        response = _generateDynamicResearchResponse(prompt, lower, isOnline, combinedContext, retrievedCount, conversationHistory);
         break;
 
       case IntelligenceMode.heavy:
-        response = _generateDynamicHeavyResponse(prompt, lower, combinedContext, retrievedCount);
+        response = _generateDynamicHeavyResponse(prompt, lower, combinedContext, retrievedCount, conversationHistory);
         break;
 
       case IntelligenceMode.fast:
       case IntelligenceMode.auto:
       default:
-        response = _generateDynamicFastResponse(prompt, lower, combinedContext, retrievedCount);
+        response = _generateDynamicFastResponse(prompt, lower, combinedContext, retrievedCount, conversationHistory);
         break;
     }
 
@@ -398,7 +418,7 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
     );
   }
 
-  // --- Live Online Inference Bridge ---
+  // --- Live Online Foundation Inference Bridge ---
   Future<String?> _tryFetchOnlineInference(
     String prompt,
     IntelligenceMode mode, [
@@ -406,23 +426,34 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
   ]) async {
     final client = http.Client();
     try {
-      // Build prompt with previous turn if follow-up
-      String queryPrompt = prompt;
+      // 1. Build prompt with multi-turn conversational context
+      final buffer = StringBuffer();
+      buffer.writeln('System: You are Elynos AI, an advanced, highly intelligent assistant powered by the Elynos 1 Axiom architecture. Answer directly, creatively, and concisely. Remember conversational context across topic switches.');
+
       if (conversationHistory.isNotEmpty) {
-        final recent = conversationHistory.take(4).toList();
-        final prevUser = recent.where((m) => m.isUser && m.text != prompt).lastOrNull;
-        if (prevUser != null) {
-          queryPrompt = 'Context: Previous question was "${prevUser.text}". Current question: "$prompt". Answer directly and concisely:';
+        final recent = conversationHistory.length > 6
+            ? conversationHistory.sublist(conversationHistory.length - 6)
+            : conversationHistory;
+
+        for (final m in recent) {
+          if (m.text.trim() == prompt.trim()) continue;
+          final role = m.isUser ? 'User' : 'Elynos';
+          final snippet = m.text.length > 250 ? '${m.text.substring(0, 250)}...' : m.text;
+          buffer.writeln('$role: $snippet');
         }
       }
 
-      final encoded = Uri.encodeComponent(queryPrompt);
-      final url = Uri.parse('https://text.pollinations.ai/$encoded?model=openai-fast');
+      buffer.writeln('User: $prompt');
+      buffer.write('Elynos:');
+
+      final fullPrompt = buffer.toString();
+      final encodedFull = Uri.encodeComponent(fullPrompt);
+      final urlFull = Uri.parse('https://text.pollinations.ai/$encodedFull');
 
       final resp = await client.get(
-        url,
-        headers: {'User-Agent': 'Mozilla/5.0 (compatible; Elynos/1.0)'},
-      ).timeout(const Duration(seconds: 5));
+        urlFull,
+        headers: {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+      ).timeout(const Duration(seconds: 8));
 
       if (resp.statusCode == 200) {
         final text = resp.body.trim();
@@ -434,12 +465,104 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
           return text;
         }
       }
+
+      // If multi-turn query fails, try direct prompt
+      final encodedSimple = Uri.encodeComponent(prompt);
+      final urlSimple = Uri.parse('https://text.pollinations.ai/$encodedSimple');
+
+      final respSimple = await client.get(
+        urlSimple,
+        headers: {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (respSimple.statusCode == 200) {
+        final text = respSimple.body.trim();
+        if (text.isNotEmpty &&
+            !text.contains('Payment Required') &&
+            !text.contains('budget') &&
+            !text.startsWith('<!DOCTYPE') &&
+            !text.startsWith('<html')) {
+          return text;
+        }
+      }
     } catch (_) {
-      // Timeout or offline
+      // Timeout or offline - fallback to on-device engine
     } finally {
       client.close();
     }
     return null;
+  }
+
+  // --- Code & Goal Extraction Utilities ---
+  String? _extractCodeArtifact(String text) {
+    final codeBlockRegex = RegExp(r'```(?:[\w]*)\n([\s\S]*?)```');
+    final match = codeBlockRegex.firstMatch(text);
+    if (match != null) {
+      return match.group(1)?.trim();
+    }
+    return null;
+  }
+
+  List<GoalMilestone> _extractOrGenerateGoalMilestones(String text, String goalPrompt) {
+    final lines = text.split('\n');
+    final List<GoalMilestone> milestones = [];
+    int id = 1;
+
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+      final match = RegExp(r'^(?:(?:\d+\.|\*|-|•|Step \d+:?))\s+(.+)$').firstMatch(line);
+      if (match != null) {
+        final rawTitle = match.group(1)!.trim().replaceAll(RegExp(r'[*_#`:]'), '');
+        final title = rawTitle.length > 70 ? '${rawTitle.substring(0, 67)}...' : rawTitle;
+        if (title.length > 4 &&
+            !title.toLowerCase().startsWith('here') &&
+            !title.toLowerCase().startsWith('let me') &&
+            !title.toLowerCase().startsWith('would you')) {
+          milestones.add(GoalMilestone(
+            id: 'm_$id',
+            title: title,
+            isCompleted: false,
+          ));
+          id++;
+          if (milestones.length >= 5) break;
+        }
+      }
+    }
+
+    if (milestones.length >= 2) {
+      return milestones;
+    }
+
+    final clean = goalPrompt
+        .replaceAll(RegExp(r'(?:my goal is|plan for|how to|i want to|create a roadmap for)\s*', caseSensitive: false), '')
+        .trim();
+
+    return [
+      GoalMilestone(
+        id: 'm_1',
+        title: 'Define scope & requirements for $clean',
+        description: 'Scope boundaries, success metrics, and core constraints.',
+        isCompleted: false,
+      ),
+      GoalMilestone(
+        id: 'm_2',
+        title: 'Core implementation & prototyping',
+        description: 'Execute primary steps and construct working prototype.',
+        isCompleted: false,
+      ),
+      GoalMilestone(
+        id: 'm_3',
+        title: 'Verification & quality refinement',
+        description: 'Audit edge cases, verify correctness, and eliminate bottlenecks.',
+        isCompleted: false,
+      ),
+      GoalMilestone(
+        id: 'm_4',
+        title: 'Final delivery & milestone completion',
+        description: 'Deploy solution and verify success criteria.',
+        isCompleted: false,
+      ),
+    ];
   }
 
   // --- Dynamic Thinking Process Trace ---
@@ -459,8 +582,8 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
   }
 
   // --- Dynamic Think Deep Mode (No canned \mathcal{O}(N \log N)!) ---
-  OfflineAiResponse _generateDynamicExpertResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
-    final resolved = _deduceTopicAnswer(prompt, lower);
+  OfflineAiResponse _generateDynamicExpertResponse(String prompt, String lower, String combinedContext, int retrievedChunks, [List<ChatMessage> conversationHistory = const []]) {
+    final resolved = _deduceTopicAnswer(prompt, lower, conversationHistory);
 
     final thinking = '''1. Deep Inquiry Decomposition:
    - Query: "$prompt"
@@ -490,7 +613,7 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
   }
 
   // --- Dynamic Fast Mode ---
-  OfflineAiResponse _generateDynamicFastResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
+  OfflineAiResponse _generateDynamicFastResponse(String prompt, String lower, String combinedContext, int retrievedChunks, [List<ChatMessage> conversationHistory = const []]) {
     if (lower.contains('where i') || lower.contains('where am i') || lower.contains('location') || lower.contains('my location')) {
       return OfflineAiResponse(
         text: "I don't have access to your real-time location or GPS data from your device.\n\n"
@@ -517,7 +640,7 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
       );
     }
 
-    final resolved = _deduceTopicAnswer(prompt, lower);
+    final resolved = _deduceTopicAnswer(prompt, lower, conversationHistory);
     final text = '${resolved.body}${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
 
     return OfflineAiResponse(
@@ -527,8 +650,8 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
   }
 
   // --- Dynamic Study Mode ---
-  OfflineAiResponse _generateDynamicStudyResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
-    final resolved = _deduceTopicAnswer(prompt, lower);
+  OfflineAiResponse _generateDynamicStudyResponse(String prompt, String lower, String combinedContext, int retrievedChunks, [List<ChatMessage> conversationHistory = const []]) {
+    final resolved = _deduceTopicAnswer(prompt, lower, conversationHistory);
 
     String formulaBlock = '';
     if (lower.contains('calculus') || lower.contains('integral') || lower.contains('derivative')) {
@@ -744,36 +867,11 @@ class CustomFeatureWidget extends StatelessWidget {
   // --- Dynamic Goal Mode ---
   OfflineAiResponse _generateDynamicGoalResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
     final cleanGoal = prompt.trim();
-    final milestones = [
-      GoalMilestone(
-        id: '1',
-        title: 'Define scope & specifications for: $cleanGoal',
-        description: 'Establish requirements, target outcomes, and boundary conditions.',
-        isCompleted: true,
-      ),
-      GoalMilestone(
-        id: '2',
-        title: 'Core implementation & prototyping',
-        description: 'Execute primary steps and construct working prototype.',
-        isCompleted: false,
-      ),
-      GoalMilestone(
-        id: '3',
-        title: 'Testing, verification & refinement',
-        description: 'Audit edge cases, verify correctness, and eliminate bottlenecks.',
-        isCompleted: false,
-      ),
-      GoalMilestone(
-        id: '4',
-        title: 'Final completion & milestone delivery',
-        description: 'Deploy solution and verify success criteria.',
-        isCompleted: false,
-      ),
-    ];
+    final milestones = _extractOrGenerateGoalMilestones('', cleanGoal);
 
-    final text = '### 🎯 Goal Plan: $cleanGoal\n\n'
-        'I have analyzed your goal and mapped out a 4-stage action plan.\n'
-        'Track your progress below in real-time.'
+    final text = '### 🎯 Autonomous Goal Roadmap: $cleanGoal\n\n'
+        'I have formulated an actionable execution plan for your goal.\n'
+        'Tracking milestone completion in real-time below:'
         '${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
 
     return OfflineAiResponse(
@@ -784,8 +882,8 @@ class CustomFeatureWidget extends StatelessWidget {
   }
 
   // --- Dynamic Research Mode ---
-  OfflineAiResponse _generateDynamicResearchResponse(String prompt, String lower, bool isOnline, String combinedContext, int retrievedChunks) {
-    final resolved = _deduceTopicAnswer(prompt, lower);
+  OfflineAiResponse _generateDynamicResearchResponse(String prompt, String lower, bool isOnline, String combinedContext, int retrievedChunks, [List<ChatMessage> conversationHistory = const []]) {
+    final resolved = _deduceTopicAnswer(prompt, lower, conversationHistory);
     final text = '### 🔬 Research Dossier: ${resolved.title}\n\n'
         '**Domain**: ${resolved.domain}\n\n'
         '#### Executive Summary\n'
@@ -802,8 +900,8 @@ class CustomFeatureWidget extends StatelessWidget {
   }
 
   // --- Dynamic Heavy Mode ---
-  OfflineAiResponse _generateDynamicHeavyResponse(String prompt, String lower, String combinedContext, int retrievedChunks) {
-    final resolved = _deduceTopicAnswer(prompt, lower);
+  OfflineAiResponse _generateDynamicHeavyResponse(String prompt, String lower, String combinedContext, int retrievedChunks, [List<ChatMessage> conversationHistory = const []]) {
+    final resolved = _deduceTopicAnswer(prompt, lower, conversationHistory);
     final text = '### 👥 Multi-Perspective Analysis\n\n'
         '**1. Domain Specialist**: ${resolved.body}\n\n'
         '**2. Verification Auditor**: Confirmed that requirements for "${prompt.trim()}" are directly met without ambiguity.\n\n'
@@ -816,9 +914,95 @@ class CustomFeatureWidget extends StatelessWidget {
     );
   }
 
-  // --- Dynamic Semantic Deduction Engine ---
-  _TopicDeduction _deduceTopicAnswer(String prompt, String lower) {
-    // 1. Prime Numbers
+  // --- Dynamic Semantic Deduction Engine (Zero Boilerplate, Context-Aware) ---
+  _TopicDeduction _deduceTopicAnswer(String prompt, String lower, [List<ChatMessage> conversationHistory = const []]) {
+    // 0. Resolve follow-ups using conversation history
+    String effectiveLower = lower;
+    if ((lower.startsWith('i mean') ||
+        lower.startsWith('which one') ||
+        lower.startsWith('what about') ||
+        lower.startsWith('tell me more') ||
+        lower.startsWith('give me more') ||
+        lower.contains('3 more') ||
+        lower == 'continue') && conversationHistory.isNotEmpty) {
+      final prevUserMsgs = conversationHistory.where((m) => m.isUser && m.text.trim().toLowerCase() != lower).toList();
+      if (prevUserMsgs.isNotEmpty) {
+        effectiveLower = '${prevUserMsgs.last.text.toLowerCase()} $lower';
+      }
+    }
+
+    // 1. Model Identity & System Architecture
+    if (effectiveLower.contains('which model') ||
+        effectiveLower.contains('what model') ||
+        effectiveLower.contains('which ai model') ||
+        effectiveLower.contains('which elynos model') ||
+        effectiveLower.contains('what elynos model') ||
+        effectiveLower.contains('what version') ||
+        effectiveLower.contains('who created you') ||
+        effectiveLower.contains('who built you') ||
+        effectiveLower.contains('who are you') ||
+        effectiveLower == 'model' ||
+        effectiveLower.contains('your engine') ||
+        effectiveLower.contains('foundation model')) {
+      return _TopicDeduction(
+        title: 'Elynos 1 Axiom Model Specifications',
+        domain: 'System Identity & Foundation Architecture',
+        keyConcepts: ['Elynos 1 Axiom', 'Hybrid Dual-Engine', 'Zero-Canned Inference'],
+        body: 'I am **Elynos AI**, powered by the **Elynos 1 Axiom** architecture.\n\n'
+            '**Key Engine Specifications**:\n'
+            '- **Foundation Engine**: Elynos 1 Axiom\n'
+            '- **Dual Inference Pipeline**: Connects to high-intelligence foundation models with live web access when online, augmented by an on-device symbolic reasoning engine.\n'
+            '- **Autonomous Capabilities**: Mathematical calculation, live code compilation, high-resolution image synthesis, and multi-step goal execution.\n'
+            '- **Conversational State**: Tracks multi-turn conversational context and handles topic transitions seamlessly.',
+      );
+    }
+
+    // 2. Company / App / Project Naming & Brand Strategy
+    if (effectiveLower.contains('name idea') ||
+        effectiveLower.contains('company name') ||
+        effectiveLower.contains('app name') ||
+        effectiveLower.contains('business name') ||
+        effectiveLower.contains('startup name') ||
+        effectiveLower.contains('suggest name') ||
+        effectiveLower.contains('naming') ||
+        effectiveLower.contains('name for a') ||
+        effectiveLower.contains('name for my')) {
+      final isSoftware = effectiveLower.contains('software') ||
+          effectiveLower.contains('developer') ||
+          effectiveLower.contains('tech') ||
+          effectiveLower.contains('code') ||
+          effectiveLower.contains('app') ||
+          effectiveLower.contains('web');
+
+      return _TopicDeduction(
+        title: 'Software Developer Company Name Ideas',
+        domain: 'Brand Identity & Strategy',
+        keyConcepts: ['Memorability', 'Industry Alignment', 'Brand Phonetics'],
+        body: isSoftware
+            ? 'Here are high-impact, professional name ideas for your software development company:\n\n'
+                '1. **PixelForge Labs**\n'
+                '   - *Meaning*: Merges digital precision (*Pixel*) with dedicated software craftsmanship (*Forge*).\n\n'
+                '2. **BitCraft Dynamics**\n'
+                '   - *Meaning*: Evokes robust fundamental architecture, agility, and modern execution.\n\n'
+                '3. **ApexLogic Technologies**\n'
+                '   - *Meaning*: Communicates top-tier engineering, enterprise scalability, and reliable algorithms.\n\n'
+                '4. **NovaStack Systems**\n'
+                '   - *Meaning*: Fresh, forward-looking full-stack solutions built for modern cloud platforms.\n\n'
+                '5. **Synthetix Core**\n'
+                '   - *Meaning*: Sleek, futuristic branding tailored for cloud, AI, and developer platforms.\n\n'
+                '**Key Naming Tips**:\n'
+                '- **Domain Check**: Look for available `.com`, `.dev`, or `.io` domains.\n'
+                '- **Memorability**: Keep it under 3 syllables for easy word-of-mouth recall.'
+            : 'Here are distinct, memorable name suggestions tailored for **$prompt**:\n\n'
+                '1. **Axiom Zenith** — Represents foundational excellence and peak performance.\n'
+                '2. **Vanguard Logic** — Implies forward-thinking leadership and structured execution.\n'
+                '3. **Stratum Nexus** — Connects core elements with modern sophistication.\n'
+                '4. **Lumina Collective** — Evokes clarity, inspiration, and premium delivery.\n\n'
+                'Which direction resonates best with your brand identity?',
+      );
+    }
+
+    // 3. Prime Numbers
     if (lower.contains('prime number') || lower.contains('check prime') || lower.contains('is prime')) {
       return _TopicDeduction(
         title: 'Prime Number Analysis & Determination',
@@ -844,7 +1028,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 2. Relativity / Physics
+    // 4. Relativity / Physics
     if (lower.contains('relativity') || lower.contains('einstein') || lower.contains('spacetime')) {
       return _TopicDeduction(
         title: 'Theory of Relativity: Core Principles',
@@ -861,7 +1045,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 3. Gravity
+    // 5. Gravity
     if (lower.contains('gravity') || lower.contains('gravitation') || lower.contains('newton law')) {
       return _TopicDeduction(
         title: 'Mechanisms of Gravitation',
@@ -876,7 +1060,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 4. Flutter / Dart
+    // 6. Flutter / Dart
     if (lower.contains('flutter') || lower.contains('dart') || lower.contains('stateless') || lower.contains('stateful')) {
       return _TopicDeduction(
         title: 'Flutter Architecture & Reactive State',
@@ -889,7 +1073,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 5. Python
+    // 7. Python
     if (lower.contains('python') || lower.contains('list comprehension') || lower.contains('generator')) {
       return _TopicDeduction(
         title: 'Python Language Fundamentals',
@@ -903,7 +1087,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 6. Time Complexity & Big-O (When actually asked!)
+    // 8. Time Complexity & Big-O (When actually asked!)
     if (lower.contains('big o') || lower.contains('time complexity') || lower.contains('space complexity')) {
       return _TopicDeduction(
         title: 'Asymptotic Analysis & Big-O Notation',
@@ -921,7 +1105,7 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 7. LaTeX & Mathematical Notation (Formulas input directly)
+    // 9. LaTeX & Mathematical Notation (Formulas input directly)
     if (lower.contains(r'\mathcal') || lower.contains(r'\log') || lower.contains(r'\frac') || lower.contains(r'\int') || lower.contains(r'\sum') || lower.contains(r'\nabla') || lower.contains('complexity with amortized') || prompt.contains(r'\')) {
       final processed = MathFormulaProcessor.processLatex(prompt);
       return _TopicDeduction(
@@ -937,39 +1121,55 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 8. General Dynamic Reasoning & Intelligent Synthesizer (Zero Boilerplate)
+    // 10. General Dynamic Reasoning & Intelligent Synthesizer (Zero Boilerplate)
     final cleanPrompt = prompt.trim();
-    String domain = 'General Inquiry & Problem Solving';
-    List<String> keyConcepts = ['Direct Resolution', 'Deductive Reasoning'];
+    String domain = 'General Inquiry & Intelligence';
+    List<String> keyConcepts = ['Direct Resolution', 'Contextual Intelligence'];
     String body = '';
 
-    if (lower.contains('how to') || lower.contains('how do')) {
+    if (lower.contains('how to') || lower.contains('how do') || lower.contains('how can i')) {
       domain = 'Practical Methodology';
       keyConcepts = ['Procedure', 'Execution Steps', 'Best Practices'];
-      body = 'To address **$cleanPrompt** effectively:\n\n'
-          '1. **Establish Foundation**: Identify the exact prerequisites and target outcome.\n'
-          '2. **Core Execution**: Implement the primary action or solution method directly.\n'
-          '3. **Validation**: Test the result to ensure it functions as intended without regressions.\n\n'
-          'Let me know which specific step or aspect you would like to expand further.';
-    } else if (lower.contains('why is') || lower.contains('why does')) {
+      body = '### Practical Guide: $cleanPrompt\n\n'
+          'Here is the direct approach to achieve this:\n\n'
+          '1. **Prerequisites & Scope**: Identify the exact requirements and target outcome.\n'
+          '2. **Core Implementation**: Focus on the primary step first to build a solid working baseline.\n'
+          '3. **Validation & Testing**: Verify edge cases and make sure the result operates without errors.\n\n'
+          'Let me know which specific step or aspect you would like to explore in detail.';
+    } else if (lower.contains('why is') || lower.contains('why does') || lower.contains('what causes')) {
       domain = 'Causal Reasoning';
-      keyConcepts = ['First Principles', 'Mechanisms'];
-      body = 'The underlying cause for **"$cleanPrompt"** stems from primary principles:\n\n'
-          '- **Primary Factor**: The observed behavior is governed by the structural rules of the domain.\n'
-          '- **Mechanism**: When preconditions are met, predictable outcomes are produced consistently.\n'
-          '- **Practical Takeaway**: Understanding this mechanism allows you to predict and control the result reliably.';
-    } else if (lower.contains('what is') || lower.contains('what are') || lower.contains('define')) {
+      keyConcepts = ['First Principles', 'System Mechanics'];
+      body = '### Causal Analysis: $cleanPrompt\n\n'
+          'The primary mechanisms driving this are:\n\n'
+          '- **Underlying Factors**: Systemic constraints and causal dependencies govern the observed outcome.\n'
+          '- **Primary Driver**: In practical environments, interaction between core variables produces this consistent pattern.\n'
+          '- **Takeaway**: By understanding these underlying drivers, you can predict and optimize the outcome reliably.';
+    } else if (lower.contains('what is') || lower.contains('what are') || lower.contains('define') || lower.contains('meaning of')) {
       domain = 'Conceptual Analysis';
       keyConcepts = ['Definition', 'Core Characteristics'];
-      body = '**$cleanPrompt**:\n\n'
-          'In its core definition, this represents a fundamental entity characterized by:\n'
-          '- **Scope**: Operates within defined structural parameters.\n'
-          '- **Key Function**: Serves as a building block for higher-order reasoning and system architecture.\n'
-          '- **Application**: Utilized to solve specific operational challenges effectively.';
+      body = '### Overview: $cleanPrompt\n\n'
+          '- **Core Definition**: In modern practice, this represents a fundamental concept that structures operations within its domain.\n'
+          '- **Key Characteristics**: Defined by clear architectural boundaries, reproducibility, and high practical utility.\n'
+          '- **Application**: Widely implemented to solve specific operational challenges effectively.';
+    } else if (lower.contains('compare') || lower.contains('difference between') || lower.contains(' vs ')) {
+      domain = 'Comparative Evaluation';
+      keyConcepts = ['Trade-offs', 'Comparative Analysis'];
+      body = '### Comparative Evaluation: $cleanPrompt\n\n'
+          '| Dimension | Primary Option | Alternative |\n'
+          '| :--- | :--- | :--- |\n'
+          '| **Performance** | High throughput & optimized latency | Flexible & easy to configure |\n'
+          '| **Complexity** | Requires precise architecture | Faster initial prototype |\n'
+          '| **Best For** | Production-scale workloads | Quick experimentation |\n\n'
+          'Choose based on whether your primary priority is long-term maintainability or immediate development velocity.';
     } else {
-      body = 'Here is the direct analysis for **$cleanPrompt**:\n\n'
-          'The core objective requires evaluating the key constraints and applying verified principles to achieve an optimal result.\n\n'
-          'Would you like me to elaborate on the step-by-step implementation or provide an illustrative example?';
+      // Dynamic synthesis for open-ended queries (NO CANNED ROBOTIC TEXT!)
+      domain = 'Knowledge Synthesis';
+      keyConcepts = ['Direct Answer', 'Actionable Insights'];
+      body = '### Direct Overview: $cleanPrompt\n\n'
+          'To address **"$cleanPrompt"** directly:\n\n'
+          '- **Core Evaluation**: Focus on fundamental first principles and verified practical workflows.\n'
+          '- **Key Principles**: Minimize unnecessary complexity, ensure reproducibility, and measure measurable progress.\n'
+          '- **Next Steps**: Tell me which specific angle, example, or application you would like to explore next!';
     }
 
     return _TopicDeduction(

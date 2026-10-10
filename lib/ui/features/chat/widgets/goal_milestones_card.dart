@@ -20,12 +20,15 @@ class GoalMilestonesCard extends StatefulWidget {
   State<GoalMilestonesCard> createState() => _GoalMilestonesCardState();
 }
 
-class _GoalMilestonesCardState extends State<GoalMilestonesCard> {
+class _GoalMilestonesCardState extends State<GoalMilestonesCard> with AutomaticKeepAliveClientMixin {
   late List<GoalMilestone> _items;
   bool _isAutoExecuting = false;
   int _activeExecutingIndex = -1;
   String? _statusText;
   Timer? _executionTimer;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -99,6 +102,7 @@ class _GoalMilestonesCardState extends State<GoalMilestonesCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final progress = _progress;
     final isAllDone = progress == 1.0;
 
