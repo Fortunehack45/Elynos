@@ -99,7 +99,24 @@ class OfflineAiService {
 
     final lastUserText = prevUserMsgs.last.text.trim();
 
-    // Extract core substantive subject from previous query
+    // 1. Math & calculation answer follow-ups: e.g. "please the answer...", "solve it", "the answer"
+    final isAnswerRequest = lower.contains('the answer') ||
+        lower.contains('please the answer') ||
+        lower == 'answer' ||
+        lower.contains('solve it') ||
+        lower.contains('solve this') ||
+        lower.startsWith('what is the answer');
+
+    if (isAnswerRequest) {
+      return '$lastUserText ($prompt)';
+    }
+
+    // 2. Progression follow-ups: e.g. "continue", "next", "more"
+    if (lower == 'continue' || lower == 'next' || lower == 'more') {
+      return '$lastUserText (continue)';
+    }
+
+    // 3. Pronoun resolution: e.g. "who invented it", "how does it work"
     String subject = lastUserText;
     final prefixRegex = RegExp(
       r'^(?:who\s+(?:invented|discovered|created|made|wrote|founded|built)\s+|'
@@ -114,7 +131,6 @@ class OfflineAiService {
     subject = subject.replaceAll(prefixRegex, '').replaceAll(RegExp(r'[?!.]+$'), '').trim();
     if (subject.isEmpty) subject = lastUserText;
 
-    // Check for pronouns: "it", "this", "that", "them", "he", "she", "they"
     final hasPronoun = RegExp(r'\b(?:it|this|that|them)\b', caseSensitive: false).hasMatch(lower);
     if (hasPronoun) {
       return prompt.replaceAll(
@@ -123,13 +139,8 @@ class OfflineAiService {
       );
     }
 
-    final isShortFollowUp = lower == 'continue' ||
-        lower == 'more' ||
-        lower == 'next' ||
-        lower == 'the answer' ||
-        lower == 'please the answer' ||
-        lower == 'answer' ||
-        lower == 'the principles' ||
+    // 4. Short topic follow-ups: e.g. "the principles", "tell me more"
+    final isShortFollowUp = lower == 'the principles' ||
         lower.startsWith('the principle') ||
         lower.startsWith('what about') ||
         lower.startsWith('tell me more') ||
@@ -985,7 +996,12 @@ class CustomFeatureWidget extends StatelessWidget {
         (lower.contains('scientific') && (lower.contains('calc') || lower.contains('math') || lower.contains('button'))) ||
         (lastTopic.contains('calc') && !lastTopic.contains('calculus'));
 
-    final isContinue = lower == 'continue' || lower == 'next' || lower == 'more';
+    final isContinue = lower == 'continue' ||
+        lower == 'next' ||
+        lower == 'more' ||
+        lower.contains('continue') ||
+        lower.contains('next') ||
+        lower.contains('more');
 
     // A. Engineering Multi-Perspective: Scientific Calculator
     if (isCalculatorQuery) {
