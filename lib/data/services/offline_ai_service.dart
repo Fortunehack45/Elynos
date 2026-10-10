@@ -945,12 +945,12 @@ class CustomFeatureWidget extends StatelessWidget {
     if (isCalculatorQuery) {
       if (isContinue) {
         final text = '### 👥 Multi-Perspective Continuity: Scientific Calculator (Phase 2)\n\n'
-            '#### 1. 🏗️ Lead Systems Architect (Evaluation Engine)\n'
+            '#### 1. 🏗️ Lead Architect (Evaluation Engine)\n'
             '- **Algorithm**: Dijkstra\'s **Shunting-Yard Algorithm** converts infix expressions with PEMDAS operator precedence into Reverse Polish Notation (RPN), resolving nested parentheses without stack overflow.\n'
             '- **Memory Architecture**: Implements 4-register memory model (`M+`, `M-`, `MR`, `MC`) stored in volatile session state.\n\n'
             '#### 2. 💻 Implementation Specialist (Robust Shunting-Yard Parser)\n\n'
             '```dart\n'
-            'class ShuntingYardMathParser {\n'
+            'class ExpressionParser {\n'
             '  static int _precedence(String op) {\n'
             '    if (op == \'+\' || op == \'-\') return 1;\n'
             '    if (op == \'*\' || op == \'/\' || op == \'×\' || op == \'÷\') return 2;\n'
@@ -1011,7 +1011,7 @@ class CustomFeatureWidget extends StatelessWidget {
             '  }\n'
             '}\n'
             '```\n\n'
-            '#### 3. 🛡️ Verification & Quality Auditor\n'
+            '#### 3. 🛡️ Verification Auditor (Quality & Safety)\n'
             '- **Unit Test Coverage**:\n'
             '  - Invariant 1: `evaluate("2 + 3 * 4") == 14.0` (Multiplication precedence verified)\n'
             '  - Invariant 2: `evaluate("(2 + 3) * 4") == 20.0` (Parentheses override verified)\n'
@@ -1026,7 +1026,7 @@ class CustomFeatureWidget extends StatelessWidget {
       }
 
       final text = '### 👥 Multi-Perspective Engineering Consensus: Scientific Calculator\n\n'
-          '#### 1. 🏗️ Lead Systems Architect (Architecture & Engine Design)\n'
+          '#### 1. 🏗️ Lead Architect (Systems & Engine Design)\n'
           '- **Evaluation Paradigm**: Reactive state architecture supporting standard arithmetic (PEMDAS), scientific trigonometric functions, logarithms, and powers.\n'
           '- **Angular Mode**: Seamless toggle between Radians and Degrees (\$x \\cdot \\pi / 180\$).\n'
           '- **Display Layout**: High-contrast dark-mode console with live expression buffer and distinct computed result.\n\n'
@@ -1149,7 +1149,7 @@ class CustomFeatureWidget extends StatelessWidget {
           '  }\n'
           '}\n'
           '```\n\n'
-          '#### 3. 🛡️ Verification & Quality Auditor (Edge Cases & Safety)\n'
+          '#### 3. 🛡️ Verification Auditor (Edge Cases & Safety)\n'
           '- **Zero Division**: Intercepted and returned as `Error` / `NaN` without application crash.\n'
           '- **Floating Precision**: Eliminates IEEE-754 precision noise using decimal trimming.\n'
           '- **Next Step**: Type **"continue"** to add full nested parentheses parsing and memory register tests!'
@@ -1245,17 +1245,36 @@ class CustomFeatureWidget extends StatelessWidget {
       );
     }
 
-    // 2. Black Hole Thermodynamics & Physics
+    // 2. Software Developer Company Naming Ideas
+    if ((effectiveLower.contains('software') && (effectiveLower.contains('name') || effectiveLower.contains('company'))) ||
+        effectiveLower.contains('name idea') ||
+        effectiveLower.contains('developer company')) {
+      return _TopicDeduction(
+        title: 'Creative Software Company Name Ideas',
+        domain: 'Brand Strategy & Software Engineering',
+        keyConcepts: ['Brand Positioning', 'Memorability', 'Technical Craftsmanship'],
+        body: 'Here are distinct, high-impact naming concepts for a software developer company:\n\n'
+            '### 1. Modern Technical & Engineering\n'
+            '- **PixelForge**: Strong, craftsmanship-oriented branding for full-stack engineering and UI excellence.\n'
+            '- **BitCraft**: Evokes precision, binary efficiency, and algorithmic mastery.\n'
+            '- **AxiomLogic**: Sophisticated, mathematical, and enterprise-grade authority.\n\n'
+            '### 2. High Velocity & Agility\n'
+            '- **SprintPulse**: Dynamic name for rapid agile development and devops.\n'
+            '- **VectorShift**: Modern, mathematical, and forward-looking direction.',
+      );
+    }
+
+    // 3. Black Hole Thermodynamics & Physics
     if (effectiveLower.contains('black hole') ||
         effectiveLower.contains('hawking') ||
         effectiveLower.contains('bekenstein') ||
         effectiveLower.contains('surface gravity') ||
         effectiveLower.contains('event horizon')) {
       return _TopicDeduction(
-        title: 'Black Hole Thermodynamics: Core Formulas & Laws',
+        title: 'Laws of Black Hole Thermodynamics',
         domain: 'Theoretical Astrophysics & Quantum Gravity',
-        keyConcepts: ['Bekenstein-Hawking Entropy', 'Hawking Radiation', 'Four Laws of Black Hole Mechanics'],
-        body: 'Black hole thermodynamics establishes the profound correspondence between general relativity, quantum mechanics, and thermodynamics.\n\n'
+        keyConcepts: ['Bekenstein-Hawking Entropy', 'Hawking Radiation', 'Four Laws of Black Hole Thermodynamics'],
+        body: 'The four **Laws of Black Hole Thermodynamics** establish the profound correspondence between general relativity, quantum mechanics, and thermodynamics:\n\n'
             '### 1. Bekenstein-Hawking Entropy\n'
             '\$\$S_{\\text{BH}} = \\frac{k_B c^3 A}{4 G \\hbar} = \\frac{k_B A}{4 \\ell_P^2}\$\$\n\n'
             'Where:\n'
@@ -1273,7 +1292,7 @@ class CustomFeatureWidget extends StatelessWidget {
             '### 3. First Law of Black Hole Mechanics\n'
             '\$\$dM = \\frac{\\kappa}{8\\pi} dA + \\Omega \\, dJ + \\Phi \\, dQ\$\$\n\n'
             'Analogous to the first law of thermodynamics (\$dE = T dS - P dV + \\mu dN\$), where mass \$M\$ is energy, horizon area \$A\$ is entropy, \$\\Omega\$ is angular velocity, \$J\$ is angular momentum, \$\\Phi\$ is electrostatic potential, and \$Q\$ is electric charge.\n\n'
-            '### 4. The Four Laws of Black Hole Mechanics\n'
+            '### 4. The Four Laws of Black Hole Thermodynamics\n'
             '- **Zeroth Law**: The surface gravity \$\\kappa\$ is uniform across the event horizon of a stationary black hole (analogous to thermal equilibrium).\n'
             '- **First Law**: Energy conservation under perturbations (\$dM = \\frac{\\kappa}{8\\pi} dA + \\Omega dJ + \\Phi dQ\$).\n'
             '- **Second Law (Generalized Entropy)**: The total generalized entropy never decreases:\n'
