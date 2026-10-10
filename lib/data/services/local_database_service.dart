@@ -5,6 +5,7 @@ import '../../domain/models/conversation.dart';
 import '../../domain/models/chat_message.dart';
 import '../../domain/models/training_memory.dart';
 import '../../domain/models/build_project.dart';
+import '../../domain/models/intelligence_mode.dart';
 
 class LocalDatabaseService {
   static final LocalDatabaseService _instance = LocalDatabaseService._internal();
