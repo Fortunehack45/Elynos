@@ -109,7 +109,7 @@ class _ChatBubbleState extends State<ChatBubble> {
           if (widget.message.hasThinking)
             ThinkingDisclosureWidget(
               thinkingProcess: widget.message.thinkingProcess!,
-              durationSeconds: (widget.message.thinkingProcess!.length / 150).clamp(2, 10).toInt(),
+              durationSeconds: _calculateThinkingDuration(widget.message),
             ),
 
           // Main Markdown Response Text
@@ -297,5 +297,16 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
       ),
     );
+  }
+
+  int _calculateThinkingDuration(ChatMessage message) {
+    final len = message.thinkingProcess?.length ?? 120;
+    if (message.mode == IntelligenceMode.expert) {
+      return (len / 75).clamp(4, 16).toInt();
+    } else if (message.mode == IntelligenceMode.heavy) {
+      return (len / 60).clamp(5, 22).toInt();
+    } else {
+      return (len / 100).clamp(2, 9).toInt();
+    }
   }
 }

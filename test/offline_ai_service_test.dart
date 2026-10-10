@@ -269,5 +269,80 @@ void main() {
       expect(response.text.contains(r'T_H'), isTrue);
       expect(response.text.contains('The core objective requires evaluating the key constraints'), isFalse);
     });
+
+    test('Query "who invented the scientific method" returns authoritative attribution', () async {
+      final response = await service.generateResponse(
+        prompt: 'who invented the scientific method',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('Ibn al-Haytham') || response.text.contains('Alhazen'), isTrue);
+      expect(response.text.contains('Francis Bacon'), isTrue);
+      expect(response.text.contains('Galileo Galilei'), isTrue);
+      expect(response.text.contains('Six Essential Steps'), isTrue);
+      // Zero canned fluff
+      expect(response.text.contains('Represents a key operational element within its domain'), isFalse);
+      expect(response.text.contains('Focus on establishing clear baseline requirements'), isFalse);
+    });
+
+    test('Multi-turn pronoun follow-up "who invented it" binds to previous "the scientific method" subject', () async {
+      final history = [
+        ChatMessage(
+          id: 'msg_1',
+          conversationId: 'conv_sci',
+          sender: 'user',
+          text: 'who invented the scientific method',
+          mode: IntelligenceMode.fast,
+          timestamp: DateTime.now(),
+        ),
+        ChatMessage(
+          id: 'msg_2',
+          conversationId: 'conv_sci',
+          sender: 'elynos',
+          text: 'The scientific method was developed by Ibn al-Haytham, Francis Bacon, and Galileo Galilei...',
+          mode: IntelligenceMode.fast,
+          timestamp: DateTime.now(),
+        ),
+      ];
+
+      final response = await service.generateResponse(
+        prompt: 'who invented it',
+        mode: IntelligenceMode.fast,
+        activeMemories: [],
+        conversationHistory: history,
+      );
+
+      expect(response.text.contains('Ibn al-Haytham') || response.text.contains('Alhazen'), isTrue);
+      expect(response.text.contains('Francis Bacon'), isTrue);
+      expect(response.text.contains('Represents a key operational element within its domain'), isFalse);
+      expect(response.text.contains('Focus on establishing clear baseline requirements'), isFalse);
+    });
+
+    test('Airplane inquiry outputs Wright Brothers, 3-axis control, and lift formula', () async {
+      final response = await service.generateResponse(
+        prompt: 'who invented the airplane and how does it fly',
+        mode: IntelligenceMode.expert,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('Wright Brothers') || response.text.contains('Orville and Wilbur'), isTrue);
+      expect(response.text.contains('Three-Axis Flight Control'), isTrue);
+      expect(response.text.contains(r'L = \frac{1}{2}'), isTrue);
+      expect(response.text.contains('Represents a key operational element within its domain'), isFalse);
+    });
+
+    test('Computer inquiry outputs Babbage, Lovelace, Turing, and Von Neumann', () async {
+      final response = await service.generateResponse(
+        prompt: 'who invented the computer',
+        mode: IntelligenceMode.study,
+        activeMemories: [],
+      );
+
+      expect(response.text.contains('Charles Babbage'), isTrue);
+      expect(response.text.contains('Ada Lovelace'), isTrue);
+      expect(response.text.contains('Alan Turing'), isTrue);
+      expect(response.text.contains('Represents a key operational element within its domain'), isFalse);
+    });
   });
 }

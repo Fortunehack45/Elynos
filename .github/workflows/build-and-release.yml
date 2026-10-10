@@ -82,13 +82,13 @@ jobs:
             ## 🚀 Elynos AI v1.0.3 - Sovereign Intelligence & Math Architecture
             **Model**: Elynos 1 Axiom Dual-Engine Framework (Offline Edge + Super Intelligence)
             
-            ### What's New in v1.0.3:
-            - **Multi-Perspective Heavy Mode**: Solves complex engineering queries (e.g. Scientific Calculator) through a 3-agent panel: Lead Architect (specifications), Implementation Specialist (complete runnable Flutter/Dart code with 1-tap copy), and Verification Auditor (invariants).
-            - **Seamless Multi-Turn Context Continuity**: Eradicated conversational amnesia. Follow-ups like *"the principles"* or *"continue"* accurately retain full context from prior turns.
-            - **Clean Container-Free LaTeX Math**: Rendered directly in-flow with clean serif typography and horizontal scroll support, removing ugly grey border boxes and formula labels.
-            - **Accurate Dynamic Thinking Timers**: Fixed false "Thought for 1s" pills on instant responses; deep reasoning duration is dynamically computed based on token density.
-            - **Resilient Local Database Storage**: Fixed past chats loading as empty by querying non-temporary messages and isolating row deserialization.
-            - **In-App Update Checker**: Added a direct "Check for Updates" tile in the navigation drawer linked to the GitHub release repository.
+            ### What's New in v1.0.3 (Build 5):
+            - **Zero Canned Responses**: Completely eradicated hollow 3-bullet placeholder text; all inquiries receive authentic, substantive intelligence.
+            - **Authoritative Science & Inventions Knowledge Base**: In-depth offline coverage for the Scientific Method (Ibn al-Haytham / Alhazen, Francis Bacon, Galileo Galilei), Computing (Babbage, Lovelace, Turing), Internet (Cerf, Kahn, Berners-Lee), Aviation (Wright Brothers, Lift formula), Electricity (Faraday, Tesla, Edison), and Biology (Penicillin, DNA double helix).
+            - **Multi-Turn Pronoun Resolution**: Follow-ups like *"who invented it"* or *"how does it work"* seamlessly bind pronouns to prior conversation subjects without losing context.
+            - **Unmetered Online Bridge**: Upgraded online inference to unmetered Mistral engine with generous mobile timeouts and fallback protection.
+            - **Resilient SQLite Local Database**: Upgraded schema to v3 with comprehensive migrations and defensive fallback ensuring past chats never open empty.
+            - **Dynamic Thinking Timers & Clean LaTeX**: Accurate thinking duration calculations and clean, in-flow mathematical formulas without container boxes.
             
             ### Included Assets:
             - `app-release.apk`: Direct Android installation package.

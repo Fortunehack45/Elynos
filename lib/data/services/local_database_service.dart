@@ -26,13 +26,38 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onUpgrade: (db, oldVersion, newVersion) async {
         try {
           await db.execute('ALTER TABLE messages ADD COLUMN visualAuditJson TEXT;');
         } catch (_) {}
         try {
           await db.execute('ALTER TABLE messages ADD COLUMN attachedFilesJson TEXT;');
+        } catch (_) {}
+        try {
+          await db.execute('ALTER TABLE messages ADD COLUMN goalMilestonesJson TEXT;');
+        } catch (_) {}
+        try {
+          await db.execute('ALTER TABLE messages ADD COLUMN isTemporary INTEGER DEFAULT 0;');
+        } catch (_) {}
+        try {
+          await db.execute('ALTER TABLE conversations ADD COLUMN isPinned INTEGER DEFAULT 0;');
+        } catch (_) {}
+        try {
+          await db.execute('ALTER TABLE conversations ADD COLUMN isPrivate INTEGER DEFAULT 0;');
+        } catch (_) {}
+        try {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS context_chunks (
+              id TEXT PRIMARY KEY,
+              conversationId TEXT NOT NULL,
+              chunkIndex INTEGER NOT NULL,
+              content TEXT NOT NULL,
+              tokenCount INTEGER NOT NULL,
+              keywords TEXT,
+              FOREIGN KEY (conversationId) REFERENCES conversations (id) ON DELETE CASCADE
+            )
+          ''');
         } catch (_) {}
       },
       onCreate: (db, version) async {
@@ -137,15 +162,30 @@ class LocalDatabaseService {
   // --- Messages ---
   Future<List<ChatMessage>> getMessages(String conversationId) async {
     final db = await database;
-    final maps = await db.query(
-      'messages',
-      where: 'conversationId = ? AND (isTemporary = 0 OR isTemporary IS NULL)',
-      orderBy: 'timestamp ASC',
-    );
-    final results = <ChatMessage>[];
-    for (final m in maps) {
+    List<Map<String, dynamic>> maps;
+    try {
+      final rows = await db.query(
+        'messages',
+        where: 'conversationId = ? AND (isTemporary = 0 OR isTemporary IS NULL)',
+        orderBy: 'timestamp ASC',
+      );
+      maps = rows.map((r) => Map<String, dynamic>.from(r)).toList();
+    } catch (_) {
       try {
-        final map = Map<String, dynamic>.from(m);
+        final rows = await db.query(
+          'messages',
+          where: 'conversationId = ?',
+          orderBy: 'timestamp ASC',
+        );
+        maps = rows.map((r) => Map<String, dynamic>.from(r)).toList();
+      } catch (_) {
+        maps = [];
+      }
+    }
+
+    final results = <ChatMessage>[];
+    for (final map in maps) {
+      try {
         if (map['goalMilestonesJson'] != null) {
           try {
             map['goalMilestones'] = jsonDecode(map['goalMilestonesJson'] as String);
@@ -166,12 +206,12 @@ class LocalDatabaseService {
         // Fallback reconstruction so a corrupted field never drops the entire chat
         try {
           results.add(ChatMessage(
-            id: m['id']?.toString() ?? 'msg_${DateTime.now().millisecondsSinceEpoch}',
+            id: map['id']?.toString() ?? 'msg_${DateTime.now().millisecondsSinceEpoch}',
             conversationId: conversationId,
-            sender: m['sender']?.toString() ?? 'elynos',
-            text: m['text']?.toString() ?? '',
+            sender: map['sender']?.toString() ?? 'elynos',
+            text: map['text']?.toString() ?? '',
             mode: IntelligenceMode.fast,
-            timestamp: DateTime.tryParse(m['timestamp']?.toString() ?? '') ?? DateTime.now(),
+            timestamp: DateTime.tryParse(map['timestamp']?.toString() ?? '') ?? DateTime.now(),
           ));
         } catch (_) {}
       }
@@ -225,7 +265,25 @@ class LocalDatabaseService {
       'isTemporary': message.isTemporary ? 1 : 0,
     };
 
-    await db.insert('messages', insertMap, conflictAlgorithm: ConflictAlgorithm.replace);
+    try {
+      await db.insert('messages', insertMap, conflictAlgorithm: ConflictAlgorithm.replace);
+    } catch (_) {
+      try {
+        // Fallback to core fields if schema variation
+        await db.insert(
+          'messages',
+          {
+            'id': message.id,
+            'conversationId': message.conversationId,
+            'sender': message.sender,
+            'text': message.text,
+            'mode': message.mode.name,
+            'timestamp': message.timestamp.toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      } catch (_) {}
+    }
 
     // 3. Update conversation timestamp & snippet
     try {

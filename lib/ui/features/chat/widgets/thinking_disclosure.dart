@@ -8,7 +8,7 @@ class ThinkingDisclosureWidget extends StatefulWidget {
   const ThinkingDisclosureWidget({
     super.key,
     required this.thinkingProcess,
-    this.durationSeconds = 1,
+    this.durationSeconds = 3,
   });
 
   @override
