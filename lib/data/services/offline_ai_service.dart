@@ -475,7 +475,10 @@ ${mathResult.steps.map((s) => '   - $s').join('\n')}
 3. Final Verification:
    - Invariant check passed. Exact answer constructed.''';
 
-    final text = '### ${resolved.title}\n\n'
+    final titleWithAnalysis = resolved.title.toLowerCase().contains('analysis')
+        ? resolved.title
+        : '${resolved.title} Analysis';
+    final text = '### $titleWithAnalysis\n\n'
         '${resolved.body}'
         '${combinedContext.isNotEmpty ? '\n\n$combinedContext' : ''}';
 
