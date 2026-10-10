@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:elynos_ai/domain/models/intelligence_mode.dart';
+import 'package:elynos_ai/domain/models/chat_message.dart';
 import 'package:elynos_ai/domain/models/training_memory.dart';
 import 'package:elynos_ai/data/services/offline_ai_service.dart';
 
